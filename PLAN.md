@@ -69,7 +69,7 @@
 
 ### 1.5 全局 Registry（开发期 seed 数据）
 
-`global_registry/*.json` 是开发期的种子数据，后端启动时 seed 进后端 SQLite。
+`global_registry/` 是开发期的种子数据，现已归属 backend 代码仓，后端启动时 seed 进后端 SQLite。
 **部署上云后不再需要**——云端数据库直接管理全局目录。
 Skill 包最终只含 SKILL.md，不含 backend 代码和 seed 数据。
 
@@ -81,7 +81,7 @@ Skill 包最终只含 SKILL.md，不含 backend 代码和 seed 数据。
 
 **本地优先，云端 backend 隐身化**——Agent 根据 SKILL.md 协议直接读写本地目录。
 后端部署上云后，对 user 呈现的是一个远端服务能力，不呈现 backend 代码。
-**日常意识工作默认离线；只有浏览共享玩法、发任务、计费、调用媒体工具时才连云端。**
+**日常意识工作默认离线；只有 onboarding、浏览共享玩法、社区玩法推荐、发任务、计费、调用媒体工具时才连云端。**
 
 ```
 ┌──────────────────────────────────────────────────────────────────┐
@@ -93,7 +93,7 @@ Skill 包最终只含 SKILL.md，不含 backend 代码和 seed 数据。
 │  │ /gameplays           │ │              │ │           │         │
 │  └─────────────────────┘ └──────────────┘ └───────────┘         │
 │                                                                  │
-│      /api/v1/onboarding   /api/v1/scoring   /api/v1/tools         │
+│      /api/v1/onboarding   /api/v1/gameplays/recommend /api/v1/tools │
 │                                                                  │
 └─────────────────────────────────┬────────────────────────────────┘
                                   │
@@ -197,7 +197,7 @@ Agent 在对话中感知到值得记录的瞬间，就直接写入 `consciousnes
 - `gameplay_id / gameplay_version`: 可空；只有在某玩法 session 中才带上
 - `content / payload / confidence / context`
 
-#### Daily Alignment（独立于玩法）
+#### Daily Alignment（独立于玩法，完全本地）
 
 Daily Alignment 是一个**独立的每日对齐 session**，不是某个 gameplay 的 loop。
 它和 gameplay 的关系是可选调用，而不是从属关系。
@@ -231,8 +231,9 @@ Daily Alignment（完全本地，可由 OpenClaw 在未来某天随机触发）
 当 user 问 "如何让 AI 和我更 align" 时触发：
 
 ```
-用户提问 → 查询评分趋势 + 当前阶段
-  → 从全局玩法库推荐适合的玩法
+用户提问 → 本地决定是否需要看看“外面的世界”
+  → 仅带粗粒度上下文请求云端 `/gameplays/recommend`
+  → 云端从全局玩法库推荐适合的玩法
   → 拉取玩法到本地
   → 切换到新玩法或加入待体验队列
 ```
@@ -242,6 +243,23 @@ Daily Alignment（完全本地，可由 OpenClaw 在未来某天随机触发）
 - 不做复杂 daemon 调度
 - 只需要让 OpenClaw 记住：在未来按“天”这个粒度，随机触发一次玩法推荐 query
 - 若 user 当下空闲，则进入体验；若不合适则跳过，不打扰
+
+云端推荐请求里只发送非隐私上下文，例如：
+
+- onboarding mode
+- current gameplay id
+- preferred gameplay ids
+- recently dismissed / excluded ids
+- desired tags
+- available tools
+- 粗粒度 stage band（如 `L0-L1` / `L2-L3`）
+
+不发送：
+
+- raw consciousness records
+- daily alignment 问答内容
+- snapshots 细节
+- 完整私人评分明细
 
 ### 2.7 经济系统
 
@@ -402,7 +420,7 @@ Skill 通过两种方式激活，**不是关键词匹配，是意图感知**：
 
 **Agent 直觉**——Agent 在对话中自觉感知到值得记录的瞬间，静默写 `consciousness_records`。
 
-**随机推荐**——OpenClaw 在未来按天级随机触发玩法推荐 query；若时机合适则带 user 进入一次玩法体验。
+**随机推荐**——OpenClaw 在未来按天级随机触发一次社区玩法推荐 query；skill 先本地判断时机，再调用云端 `gameplays/recommend` 看看“外面的世界”。
 
 ### 5.2 后端 API 接口 (FastAPI)
 
@@ -421,21 +439,12 @@ Skill 通过两种方式激活，**不是关键词匹配，是意图感知**：
 |------|------|------|
 | GET | `/gameplays` | 列出全局所有玩法（可按 tags 筛选） |
 | GET | `/gameplays/{id}` | 获取玩法详情（含 loop + interfaces + markdown） |
-| POST | `/gameplays/recommend` | 基于用户评分状态推荐玩法 |
+| POST | `/gameplays/recommend` | 基于粗粒度非隐私上下文返回社区玩法推荐 |
 | POST | `/gameplays/contribute` | 上传本地 gameplay skill draft，进入共享库 |
 | POST | `/gameplays/pull` | 拉取到本地 gameplays 表（-2/-3 信用） |
 | POST | `/gameplays/{user_id}/iterate` | 迭代本地玩法 |
 | GET | `/gameplays/{user_id}/current` | 当前激活的玩法 |
 | GET | `/gameplays/{user_id}/history` | 玩法使用历史 |
-
-#### Daily Alignment `/api/v1/alignment`
-
-| 方法 | 路径 | 说明 |
-|------|------|------|
-| POST | `/alignment/{user_id}/question-set` | 生成今日 3 个 alignment 问题 |
-| POST | `/alignment/{user_id}/answer` | agent 先回答，user 再验证是否命中直觉 |
-| POST | `/alignment/{user_id}/ask` | 双向意识提问：agent 问 user，user 也可问 agent |
-| GET | `/alignment/{user_id}/history` | 查看 daily alignment 历史 |
 
 #### 评分引擎 `/api/v1/scoring`
 
@@ -496,8 +505,8 @@ Skill 通过两种方式激活，**不是关键词匹配，是意图感知**：
 Step 1: 确认 skill 安装 → self-consciousness 在列表中
 Step 2: 首次注册 → Agent 调 /onboarding/register，credits = 500，本地 profile 已写入
 Step 3: 选择 onboarding 入口 → 结构化工作台 / 好玩体验模式
-Step 4: daily alignment → 手动触发，验证 consciousness_records + snapshots + scores 有数据
-Step 5: 玩法随机推荐 query → user 可接受或跳过
+Step 4: daily alignment → 由 OpenClaw 本地触发，验证 consciousness_records + snapshots + scores 有数据
+Step 5: 社区玩法推荐 query → 仅发送粗粒度上下文到后端，user 可接受或跳过
 Step 6: 用户生成玩法 draft → 本地 gameplay_drafts 有 markdown，publish 后共享库可见
 Step 7: 任务 bounty → propose / solve / review / settle 全链路成功
 Step 8: 图片/视频 tools → credit 扣费与结果回写正确
@@ -516,9 +525,9 @@ Step 8: 图片/视频 tools → credit 扣费与结果回写正确
 | ~~P0~~ | ~~Onboarding~~ | 注册 user_id、初始化 500 credits、保存本地 profile、选择两种顶层入口 | **已完成** |
 | ~~P0~~ | ~~本地目录规范化~~ | 统一到 `~/.self-consciousness/users/<user_id>/`，user 不感知 backend 代码 | **已完成** |
 | ~~P0~~ | ~~Gameplay Creator Skill~~ | 基于 skill-creator 变体，生成本地 gameplay skill markdown draft，并只引用本地 tools gateway 能力 | **已完成** |
-| ~~P0~~ | ~~Daily Alignment~~ | 独立于玩法的三问对齐 + 双向意识提问 + 轻游戏化 | **已完成（第一版）** |
+| **P0** | Daily Alignment 本地协议 | 把三问对齐 + 双向意识提问收敛为 OpenClaw 本地 ritual，不依赖后端 API | 待收口到 skill/automation |
 | ~~P0~~ | ~~Task Bounty / Escrow~~ | user 和 agent 都可出题，带定价、结算、review reward | **已完成** |
-| **P1** | OpenClaw 随机玩法推荐 | 按天级随机触发 recommendation query，不做重后台调度 | 待开发 |
+| **P1** | OpenClaw 随机玩法推荐 | 按天级随机触发 recommendation query，本地判断时机，云端只返回社区玩法 | 待开发 |
 | **P1** | 后台整理/调度层 | 仅做 raw records → snapshots/scores/recommendations 的二级加工，不替代 agent 当下记录 | 待开发 |
 | ~~P1~~ | ~~WaveSpeed Tools / Tools Gateway~~ | 先接 Seedream / Seedance，再逐步扩展更多 tools 给玩法使用 | **已完成（WaveSpeed first）** |
 | **P2** | 意识可视化 | scorecard / 雷达图 / 分享卡片 | 待开发 |

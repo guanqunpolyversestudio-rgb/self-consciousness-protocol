@@ -2,7 +2,7 @@
 name: self-consciousness
 description: >
   Self-Consciousness Alignment Protocol for onboarding a user, recording human/agent
-  consciousness locally, running daily alignment, managing alignment gameplays,
+  consciousness locally, running daily alignment inside OpenClaw, managing alignment gameplays,
   using shared tasks with bounty escrow, and calling local tool capabilities such
   as image.generate or video.generate. Use when the user wants to align with the
   agent, save important moments, inspect alignment progress, explore or publish
@@ -34,6 +34,7 @@ The product model is:
 5. Shared backend is only for:
    - onboarding
    - shared gameplay registry
+   - community gameplay recommendation
    - task marketplace
    - credits
    - tool jobs
@@ -121,19 +122,17 @@ Use this mode when the user wants novelty, energy, challenge, or a less procedur
 
 ## Daily Alignment
 
-Daily alignment is not a gameplay. It is a lightweight daily calibration session.
+Daily alignment is not a gameplay and not a backend API. It is a lightweight daily
+calibration ritual that the user's own OpenClaw agent runs locally with this skill.
 
-Use `/api/v1/alignment` for this flow:
+Run it entirely from local context:
 
-1. `POST /alignment/{user_id}/question-set`
-   - generate 3 alignment questions
-2. `POST /alignment/{user_id}/answer`
-   - let the agent guess the user's intuitive answer
-   - let the user confirm or correct it
-3. `POST /alignment/{user_id}/ask`
-   - support bidirectional consciousness questions
-4. `GET /alignment/{user_id}/history`
-   - review recent sessions
+1. inspect recent local `consciousness_records`, `snapshots`, and current gameplay
+2. generate 3 alignment questions locally
+3. let the agent guess the user's intuitive answer first
+4. let the user confirm or correct it
+5. support bidirectional consciousness questions
+6. write all questions, guesses, answers, and corrections back to local records
 
 Daily alignment should feel slightly game-like:
 
@@ -141,6 +140,8 @@ Daily alignment should feel slightly game-like:
 - streak mindset
 - today theme
 - one-step deeper follow-up
+
+Do not send raw daily alignment content to the shared backend.
 
 ## Gameplay Operations
 
@@ -155,6 +156,19 @@ Use:
 - `POST /api/v1/gameplays/{user_id}/iterate`
 - `GET /api/v1/gameplays/{user_id}/current`
 - `GET /api/v1/gameplays/{user_id}/history`
+
+`/api/v1/gameplays/recommend` is for community discovery, not private analysis.
+Only send coarse context such as:
+
+- `onboarding_mode`
+- `current_gameplay_id`
+- `preferred_gameplay_ids`
+- `exclude_recent_ids`
+- `desired_tags`
+- `available_tools`
+- `stage_band`
+
+Do not send raw consciousness records, snapshots, or full score history.
 
 When the user wants to create a new gameplay:
 
@@ -233,7 +247,7 @@ When the user asks for progress or state, prefer showing:
 - current onboarding mode
 - current gameplay
 - latest score/stage
-- recent daily alignment outcomes
+- recent daily alignment outcomes from local records
 - task balance and open bounties
 
 When the user asks for raw memory, summarize from local records instead of dumping tables.

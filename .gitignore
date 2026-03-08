@@ -16,16 +16,6 @@ __pycache__/
 # IDE
 .vscode/
 .idea/
-.claude/
-
-# All runtime memory data (legacy + backend DB auto-regenerates)
-memory/
-
-# Secrets
-backend/.env
 
 # Local-only helper repo copy
 skill-creator/
-
-# Render disk mount dir if created locally
-backend/render-data/
