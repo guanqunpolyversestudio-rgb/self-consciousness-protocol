@@ -27,17 +27,31 @@ When OpenClaw reads this file, it should:
 3. create `~/.self-consciousness/` if it does not exist
 4. ensure `~/.self-consciousness/profile.json` exists
 5. ensure `backend_base_url` in `~/.self-consciousness/profile.json` is `https://self-consciousness-backend.onrender.com`
-6. ask the user whether to enable a daily automation
-7. if the user wants it, ask what local time it should run
-8. configure one daily automation that:
+6. continue immediately into first-run onboarding instead of stopping after file installation
+7. ask for or infer a `user_id`
+8. call `POST /api/v1/onboarding/register` against `https://self-consciousness-backend.onrender.com`
+9. confirm that the user received `500 credits`
+10. create the local workspace under `~/.self-consciousness/users/<user_id>/`
+11. save the `current_user_id` in `~/.self-consciousness/profile.json`
+12. ask the user to choose one onboarding mode:
+   - `structured_alignment_workspace`
+   - `playful_alignment_experience`
+13. save the onboarding mode through `POST /api/v1/onboarding/preference`
+14. ask the user whether to enable a daily automation
+15. if the user wants it, ask what local time it should run
+16. configure one daily automation that:
    - runs local `daily alignment`
    - then requests one community gameplay recommendation
    - shows the recommendation to the user without auto-starting the gameplay
    - does not upload raw consciousness records, snapshots, or private score history
-9. after installation, report:
+17. after installation, report:
    - where the skills were installed
+   - the current `user_id`
+   - whether onboarding/register succeeded
+   - whether `500 credits` were received
    - whether `~/.self-consciousness/profile.json` was created
    - what `backend_base_url` is set to
+   - what onboarding mode was saved
    - whether daily automation was enabled
    - what time it is scheduled for, if enabled
 
@@ -89,6 +103,14 @@ When the skill first runs:
    - `structured_alignment_workspace`
    - `playful_alignment_experience`
 
+Do not stop after just installing files. The expected install experience includes:
+
+- user registration
+- initial `500 credits`
+- local workspace creation
+- onboarding mode selection
+- optional daily automation setup
+
 ## Prompt For OpenClaw
 
 After installation, you can give OpenClaw this prompt directly:
@@ -99,7 +121,7 @@ Please use the self-consciousness skill.
 First read ~/.self-consciousness/profile.json and confirm that backend_base_url is https://self-consciousness-backend.onrender.com.
 If it is not, update it to https://self-consciousness-backend.onrender.com.
 
-Then start first-run onboarding:
+Then continue installation by completing first-run onboarding:
 1. If there is no current user_id, help me create or confirm one.
 2. Use the shared backend at https://self-consciousness-backend.onrender.com to call onboarding/register.
 3. Confirm that I received 500 credits.
