@@ -86,7 +86,14 @@ else:
 profile.setdefault("current_user_id", "")
 profile.setdefault("users", {})
 profile.setdefault("updated_at", "")
-if not profile.get("backend_base_url"):
+legacy_local = {
+    "",
+    "http://127.0.0.1:8000",
+    "http://localhost:8000",
+    "https://127.0.0.1:8000",
+    "https://localhost:8000",
+}
+if profile.get("backend_base_url", "") in legacy_local:
     profile["backend_base_url"] = default_backend
 
 profile_path.write_text(json.dumps(profile, ensure_ascii=False, indent=2) + "\\n", encoding="utf-8")
