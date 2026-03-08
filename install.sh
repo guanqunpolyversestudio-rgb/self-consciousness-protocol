@@ -4,6 +4,7 @@ set -euo pipefail
 OWNER_REPO="guanqunpolyversestudio-rgb/self-consciousness-protocol"
 REF="main"
 SKILLS_DIR="${OPENCLAW_SKILLS_DIR:-}"
+DEFAULT_BACKEND_URL="https://self-consciousness-backend.onrender.com"
 
 usage() {
   cat <<'EOF'
@@ -67,6 +68,30 @@ rsync -a --delete "${TMP_DIR}/gameplay-creator/" "${SKILLS_DIR}/gameplay-creator
 
 mkdir -p "${HOME}/.self-consciousness"
 
+python3 - <<PY
+import json
+from pathlib import Path
+
+profile_path = Path.home() / ".self-consciousness" / "profile.json"
+default_backend = "${DEFAULT_BACKEND_URL}"
+
+if profile_path.exists():
+    try:
+        profile = json.loads(profile_path.read_text(encoding="utf-8"))
+    except Exception:
+        profile = {}
+else:
+    profile = {}
+
+profile.setdefault("current_user_id", "")
+profile.setdefault("users", {})
+profile.setdefault("updated_at", "")
+if not profile.get("backend_base_url"):
+    profile["backend_base_url"] = default_backend
+
+profile_path.write_text(json.dumps(profile, ensure_ascii=False, indent=2) + "\\n", encoding="utf-8")
+PY
+
 cat <<EOF
 Installed:
 - ${SKILLS_DIR}/self-consciousness/SKILL.md
@@ -74,8 +99,10 @@ Installed:
 
 Initialized:
 - ${HOME}/.self-consciousness
+- ${HOME}/.self-consciousness/profile.json
 
 Next:
 1. Restart OpenClaw if it caches skills.
-2. Ask OpenClaw to run self-consciousness onboarding.
+2. Default shared backend is ${DEFAULT_BACKEND_URL}
+3. Ask OpenClaw to run self-consciousness onboarding.
 EOF

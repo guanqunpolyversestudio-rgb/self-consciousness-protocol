@@ -12,6 +12,10 @@ Only the local skill layer is installed into OpenClaw:
 
 Private consciousness data stays local in `~/.self-consciousness/`.
 
+Default shared backend for testing:
+
+- `https://self-consciousness-backend.onrender.com`
+
 ## One-command install
 
 If you already know your OpenClaw skills directory, use the installer script:
@@ -53,9 +57,10 @@ mkdir -p ~/.self-consciousness
 When the skill first runs:
 
 1. choose or create a `user_id`
-2. create local workspace under `~/.self-consciousness/users/<user_id>/`
-3. receive `500 credits`
-4. choose one onboarding mode:
+2. use the default shared backend `https://self-consciousness-backend.onrender.com` unless you intentionally override it
+3. create local workspace under `~/.self-consciousness/users/<user_id>/`
+4. receive `500 credits`
+5. choose one onboarding mode:
    - `structured_alignment_workspace`
    - `playful_alignment_experience`
 

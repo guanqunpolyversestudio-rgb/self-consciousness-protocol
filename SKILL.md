@@ -18,22 +18,24 @@ The product model is:
 
 - local first for private consciousness data
 - shared backend only for onboarding, gameplays, tasks, credits, and tool jobs
+- default shared backend base URL: `https://self-consciousness-backend.onrender.com`
 - gameplay and daily alignment are different things
 - raw consciousness is recorded in the moment; background processing is a later layer
 
 ## Core Rules
 
 1. Always treat `~/.self-consciousness/` as the user's private workspace.
-2. Register the user through `/api/v1/onboarding/register` before doing any shared action.
-3. Keep raw consciousness local in the four main tables:
+2. Unless the user explicitly overrides it, use `https://self-consciousness-backend.onrender.com` as the shared backend base URL.
+3. Register the user through `/api/v1/onboarding/register` before doing any shared action.
+4. Keep raw consciousness local in the four main tables:
    - `gameplays`
    - `scores`
    - `consciousness_records`
    - `snapshots`
-4. Do not upload raw consciousness records, snapshots, or score history.
-5. Scoring is performed locally by the user's OpenClaw agent using this skill's instructions.
-6. Do not rely on any backend scoring API.
-7. Shared backend is only for:
+5. Do not upload raw consciousness records, snapshots, or score history.
+6. Scoring is performed locally by the user's OpenClaw agent using this skill's instructions.
+7. Do not rely on any backend scoring API.
+8. Shared backend is only for:
    - onboarding
    - shared gameplay registry
    - community gameplay recommendation
@@ -46,15 +48,17 @@ The product model is:
 On first activation:
 
 1. Ask for or infer a `user_id`.
-2. Call `POST /api/v1/onboarding/register`.
-3. Confirm:
+2. Use `https://self-consciousness-backend.onrender.com` as the default shared backend unless the user provided another one.
+3. Call `POST /api/v1/onboarding/register`.
+4. Confirm:
    - `user_id`
    - credits should start at `500`
    - local workspace path under `~/.self-consciousness/users/<user_id>/`
-4. Ask the user to choose one onboarding mode:
+5. Save the backend base URL in `~/.self-consciousness/profile.json`.
+5. Ask the user to choose one onboarding mode:
    - `structured_alignment_workspace`
    - `playful_alignment_experience`
-5. Save the choice through `POST /api/v1/onboarding/preference`.
+6. Save the choice through `POST /api/v1/onboarding/preference`.
 
 ## Local Data Model
 
