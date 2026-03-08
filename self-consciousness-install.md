@@ -16,6 +16,22 @@ Default shared backend for testing:
 
 - `https://self-consciousness-backend.onrender.com`
 
+## What OpenClaw Should Do
+
+When OpenClaw reads this file, it should:
+
+1. install these skills:
+   - `self-consciousness`
+   - `gameplay-creator`
+2. use `https://self-consciousness-backend.onrender.com` as the default shared backend
+3. create `~/.self-consciousness/` if it does not exist
+4. ensure `~/.self-consciousness/profile.json` exists
+5. ensure `backend_base_url` in `~/.self-consciousness/profile.json` is `https://self-consciousness-backend.onrender.com`
+6. after installation, report:
+   - where the skills were installed
+   - whether `~/.self-consciousness/profile.json` was created
+   - what `backend_base_url` is set to
+
 ## One-command install
 
 If you already know your OpenClaw skills directory, use the installer script:
