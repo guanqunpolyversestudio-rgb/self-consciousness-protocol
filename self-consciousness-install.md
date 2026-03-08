@@ -27,10 +27,19 @@ When OpenClaw reads this file, it should:
 3. create `~/.self-consciousness/` if it does not exist
 4. ensure `~/.self-consciousness/profile.json` exists
 5. ensure `backend_base_url` in `~/.self-consciousness/profile.json` is `https://self-consciousness-backend.onrender.com`
-6. after installation, report:
+6. ask the user whether to enable a daily automation
+7. if the user wants it, ask what local time it should run
+8. configure one daily automation that:
+   - runs local `daily alignment`
+   - then requests one community gameplay recommendation
+   - shows the recommendation to the user without auto-starting the gameplay
+   - does not upload raw consciousness records, snapshots, or private score history
+9. after installation, report:
    - where the skills were installed
    - whether `~/.self-consciousness/profile.json` was created
    - what `backend_base_url` is set to
+   - whether daily automation was enabled
+   - what time it is scheduled for, if enabled
 
 ## One-command install
 
@@ -124,6 +133,24 @@ Please use the self-consciousness skill, make sure ~/.self-consciousness/profile
 4. show me the result without auto-starting the gameplay
 5. tell me my user_id, credits, and workspace path
 ```
+
+## Daily Automation Behavior
+
+If the user chooses to enable daily automation during installation, OpenClaw should:
+
+1. ask for the preferred local time
+2. create one daily cron or automation
+3. on each run:
+   - first do local `daily alignment`
+   - then request one community gameplay recommendation
+   - present the recommendation to the user
+   - never auto-start the gameplay without user consent
+
+The daily automation should remain local-first:
+
+- `daily alignment` is local
+- community gameplay recommendation may use the shared backend
+- raw consciousness records, snapshots, and private score history stay local
 
 ## Daily behavior boundary
 
