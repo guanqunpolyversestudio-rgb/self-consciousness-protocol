@@ -227,8 +227,8 @@ Current implemented capabilities:
 Current provider path:
 
 - WaveSpeed first
-- image default model: `bytedance/seedream-v3`
-- video default model: `bytedance/seedance-v1-lite-t2v-720p`
+- image default model: `bytedance/seedream-v5.0-lite`
+- video default model: `bytedance/seedance-v1.5-pro/text-to-video-fast`
 
 Use:
 

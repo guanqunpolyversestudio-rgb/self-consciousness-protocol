@@ -37,18 +37,23 @@ When OpenClaw reads this file, it should:
    - `structured_alignment_workspace`
    - `playful_alignment_experience`
 13. save the onboarding mode through `POST /api/v1/onboarding/preference`
-14. ask the user whether to enable a daily automation
-15. if the user wants it, ask what local time it should run
-16. configure one daily automation that:
+14. call `GET /api/v1/tools/capabilities` against `https://self-consciousness-backend.onrender.com`
+15. remember the currently available tool capabilities, especially:
+   - `image.generate`
+   - `video.generate`
+16. ask the user whether to enable a daily automation
+17. if the user wants it, ask what local time it should run
+18. configure one daily automation that:
    - runs local `daily alignment`
    - then requests one community gameplay recommendation
    - shows the recommendation to the user without auto-starting the gameplay
    - does not upload raw consciousness records, snapshots, or private score history
-17. after installation, report:
+19. after installation, report:
    - where the skills were installed
    - the current `user_id`
    - whether onboarding/register succeeded
    - whether `500 credits` were received
+   - which tool capabilities are currently available
    - whether `~/.self-consciousness/profile.json` was created
    - what `backend_base_url` is set to
    - what onboarding mode was saved
