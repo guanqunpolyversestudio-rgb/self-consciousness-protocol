@@ -13,6 +13,7 @@
 - 本地优先，INSERT-only，SQLite
 - 不同玩法对应不同意识架构，不预设固定维度
 - 评分跨玩法通用（L0-L4）
+- 评分由 OpenClaw 本地 agent 按 skill 指引执行，不暴露 backend scoring API
 
 ---
 
@@ -40,23 +41,7 @@
 
 ---
 
-## 测试结果
+## 当前边界
 
-56/56 passed — 8 个测试文件：
-- test_ai_consciousness.py (6)
-- test_credits.py (7)
-- test_gameplays.py (10)
-- test_handshake.py (5)
-- test_scoring.py (8)
-- test_tasks.py (14)
-- test_visualization.py (4)
-
-## 后端路由
-
-localhost:8000 — 6 个路由组：
-- /api/v1/gameplays — 玩法管理（含 framework + interaction_rules）
-- /api/v1/scoring — 跨玩法评分（L0-L4）
-- /api/v1/tasks — 感性 Task + 多 Agent 验证
-- /api/v1/credits — 信用系统
-- /api/v1/handshake — 首次设置
-- /api/v1/viz — 意识 DNA + 进化曲线
+- 本地：daily alignment、scoring、consciousness_records、snapshots、scores
+- 后端：onboarding、shared gameplays、tasks、credits、tools、visualization

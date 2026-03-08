@@ -31,7 +31,9 @@ The product model is:
    - `consciousness_records`
    - `snapshots`
 4. Do not upload raw consciousness records, snapshots, or score history.
-5. Shared backend is only for:
+5. Scoring is performed locally by the user's OpenClaw agent using this skill's instructions.
+6. Do not rely on any backend scoring API.
+7. Shared backend is only for:
    - onboarding
    - shared gameplay registry
    - community gameplay recommendation
@@ -63,6 +65,7 @@ Use these local tables conceptually:
   - every pull or iterate creates a new version
 - `scores`
   - private alignment score history
+  - computed locally by the user's agent
   - always tied to `gameplay_id/gameplay_version` and scoring system version
 - `consciousness_records`
   - the main raw record log

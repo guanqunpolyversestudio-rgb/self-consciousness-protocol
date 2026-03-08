@@ -12,6 +12,21 @@ Only the local skill layer is installed into OpenClaw:
 
 Private consciousness data stays local in `~/.self-consciousness/`.
 
+## One-command install
+
+If you already know your OpenClaw skills directory, use the installer script:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/guanqunpolyversestudio-rgb/self-consciousness-protocol/main/install.sh | bash -s -- --skills-dir <OPENCLAW_SKILLS_DIR>
+```
+
+You can also set `OPENCLAW_SKILLS_DIR` first:
+
+```bash
+export OPENCLAW_SKILLS_DIR=<OPENCLAW_SKILLS_DIR>
+curl -fsSL https://raw.githubusercontent.com/guanqunpolyversestudio-rgb/self-consciousness-protocol/main/install.sh | bash
+```
+
 ## Manual install
 
 1. Clone this repository somewhere local.

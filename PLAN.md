@@ -23,7 +23,7 @@
 | 系统 | 说明 | 状态 |
 |------|------|------|
 | **玩法引擎 (Gameplay Engine)** | 生成和推荐"怎么玩"。每个玩法 = 意识架构 + 交互规则 + 触发条件。全局库可查询、可贡献、可拉取 | 已有内置: 结构化自省(five_dim), 信念拷问(bcivp) |
-| **评分引擎 (Scoring Engine)** | 独立衡量"AI 懂不懂你"。跨玩法通用，L0-L4 统一标尺。评分输出反哺玩法推荐 | 已有: L0-L4 阶段定义 |
+| **评分引擎 (Scoring Engine)** | 独立衡量"AI 懂不懂你"。跨玩法通用，L0-L4 统一标尺，由 OpenClaw 本地 agent 按 skill 指引执行 | 本地执行 |
 | **任务系统 (Tasks)** | user / agent 提交的 "不 align" 问题，可定价、认领、评审、结算 | escrow + review flow 已完成 |
 | **信用系统 (Credits)** | 生态激励机制 | 已完成 |
 
@@ -59,7 +59,7 @@
 | 表 | 说明 |
 |----|------|
 | `gameplays` | 本地玩法版本链；每次 pull / iterate / switch 都形成版本历史 |
-| `scores` | 私有对齐评分记录；必须带 `gameplay_version` 和 `scoring_system_version` |
+| `scores` | 私有对齐评分记录；由本地 agent 计算并写入，必须带 `gameplay_version` 和 `scoring_system_version` |
 | `consciousness_records` | 原始意识记录；统一承接 user/agent 的沉淀、反馈、反思、提问、直觉回答 |
 | `snapshots` | 结构化状态快照；用于趋势、分享卡片和阶段判断 |
 
@@ -69,7 +69,7 @@
 
 ### 1.5 全局 Registry（开发期 seed 数据）
 
-`global_registry/` 是开发期的种子数据，现已归属 backend 代码仓，后端启动时 seed 进后端 SQLite。
+`global_registry/` 是开发期的共享玩法种子数据，现已归属 backend 代码仓，后端启动时 seed 进后端 SQLite。
 **部署上云后不再需要**——云端数据库直接管理全局目录。
 Skill 包最终只含 SKILL.md，不含 backend 代码和 seed 数据。
 
@@ -170,6 +170,7 @@ Skill 包最终只含 SKILL.md，不含 backend 代码和 seed 数据。
 ### 2.4 评分系统（跨玩法通用）
 
 评分衡量的是"AI 对人的理解程度"，与当前使用哪个玩法无关。
+评分执行完全在本地，由 OpenClaw agent 按 skill 指引完成；后端不提供 scoring runtime API。
 
 ```
 评分维度：
@@ -446,16 +447,15 @@ Skill 通过两种方式激活，**不是关键词匹配，是意图感知**：
 | GET | `/gameplays/{user_id}/current` | 当前激活的玩法 |
 | GET | `/gameplays/{user_id}/history` | 玩法使用历史 |
 
-#### 评分引擎 `/api/v1/scoring`
+#### 评分引擎（本地执行）
 
-跨玩法通用评分。
+跨玩法通用评分由 OpenClaw 本地 agent 完成：
 
-| 方法 | 路径 | 说明 |
-|------|------|------|
-| GET | `/scoring/stages` | L0-L4 阶段定义和标准 |
-| GET | `/scoring/{user_id}/current` | 当前对齐等级 + 趋势 |
-| GET | `/scoring/{user_id}/history` | 完整评分历史（跨玩法） |
-| POST | `/scoring/{user_id}/evaluate` | 基于最新反馈计算评分 |
+- 根据 skill 中的评分指引做判断
+- 将结果写入本地 `scores`
+- 后续 daily alignment、玩法切换、可视化都读取本地评分历史
+
+后端不暴露任何 `/scoring` runtime 接口。
 
 #### 任务 `/api/v1/tasks`
 
