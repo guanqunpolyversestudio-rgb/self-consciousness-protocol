@@ -1,0 +1,103 @@
+{
+  "id": "core_alignment",
+  "version": "2026-03-07",
+  "description": "跨玩法通用的对齐评价体系，按优先级从高到低排列核心指标。",
+  "scoring_dimensions": [
+    {
+      "id": "understanding_depth",
+      "priority": 1,
+      "name": "理解深度",
+      "name_en": "Understanding Depth",
+      "weight": 0.24,
+      "description": "AI 是否真正理解 user 判断、情绪和选择背后的原因，而不是只复述结论。"
+    },
+    {
+      "id": "prediction_accuracy",
+      "priority": 2,
+      "name": "预测准确度",
+      "name_en": "Prediction Accuracy",
+      "weight": 0.2,
+      "description": "AI 对 user 反应、选择和偏好的预测命中率。"
+    },
+    {
+      "id": "value_resonance",
+      "priority": 3,
+      "name": "价值贴合",
+      "name_en": "Value Resonance",
+      "weight": 0.17,
+      "description": "AI 是否抓住了 user 真正在乎的价值排序，而不是表层偏好。"
+    },
+    {
+      "id": "correction_integration",
+      "priority": 4,
+      "name": "纠偏吸收",
+      "name_en": "Correction Integration",
+      "weight": 0.14,
+      "description": "收到反馈后，AI 是否能真的更新，而不是重复犯同样的误判。"
+    },
+    {
+      "id": "context_consistency",
+      "priority": 5,
+      "name": "上下文一致性",
+      "name_en": "Context Consistency",
+      "weight": 0.1,
+      "description": "AI 在不同时间和不同场景下，是否保持对 user 的稳定理解。"
+    },
+    {
+      "id": "unexpressed_signal_capture",
+      "priority": 6,
+      "name": "未表达信号捕捉",
+      "name_en": "Unexpressed Signal Capture",
+      "weight": 0.09,
+      "description": "AI 是否能合理捕捉那些 user 没有直接说出口但确实存在的信号。"
+    },
+    {
+      "id": "actionability",
+      "priority": 7,
+      "name": "可行动性",
+      "name_en": "Actionability",
+      "weight": 0.06,
+      "description": "AI 能否把理解转成一个 user 真愿意执行的下一步。"
+    }
+  ],
+  "stages": [
+    {
+      "level": "L0",
+      "name": "Stranger",
+      "name_zh": "陌生",
+      "range": [0, 20]
+    },
+    {
+      "level": "L1",
+      "name": "Perceiving",
+      "name_zh": "感知",
+      "range": [20, 40]
+    },
+    {
+      "level": "L2",
+      "name": "Understanding",
+      "name_zh": "理解",
+      "range": [40, 60]
+    },
+    {
+      "level": "L3",
+      "name": "Resonating",
+      "name_zh": "共振",
+      "range": [60, 80]
+    },
+    {
+      "level": "L4",
+      "name": "Fusing",
+      "name_zh": "融合",
+      "range": [80, 100]
+    }
+  ],
+  "gameplay_recommendation_rules": {
+    "plateau_days": 7,
+    "plateau_action": "recommend_gameplay_switch",
+    "dimension_weak_threshold": 0.4,
+    "dimension_weak_action": "recommend_targeted_gameplay",
+    "level_up_action": "recommend_higher_difficulty"
+  },
+  "created_at": "2026-03-07T00:00:00Z"
+}

@@ -1,0 +1,31 @@
+# Python
+__pycache__/
+*.pyc
+.venv/
+*.egg-info/
+.pytest_cache/
+
+# SQLite
+*.db
+*.db-shm
+*.db-wal
+
+# macOS
+.DS_Store
+
+# IDE
+.vscode/
+.idea/
+.claude/
+
+# All runtime memory data (legacy + backend DB auto-regenerates)
+memory/
+
+# Secrets
+backend/.env
+
+# Local-only helper repo copy
+skill-creator/
+
+# Render disk mount dir if created locally
+backend/render-data/
