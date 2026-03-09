@@ -20,6 +20,8 @@ The product model is:
 - shared backend only for onboarding, gameplays, tasks, credits, and tool jobs
 - default shared backend base URL: `https://self-consciousness-backend.onrender.com`
 - gameplay and daily alignment are different things
+- gameplay can be `one_shot` or `loop`
+- the user's current intention always has higher priority than gameplay momentum
 - raw consciousness is recorded in the moment; background processing is a later layer
 
 ## Core Rules
@@ -42,6 +44,8 @@ The product model is:
    - task marketplace
    - credits
    - tool jobs
+9. If the user brings a new task or idea, respond to that first. Offer gameplay only as an optional wrapper.
+10. Passive gameplay recommendation is an invitation, not a command.
 
 ## First Run
 
@@ -55,10 +59,16 @@ On first activation:
    - credits should start at `500`
    - local workspace path under `~/.self-consciousness/users/<user_id>/`
 5. Save the backend base URL in `~/.self-consciousness/profile.json`.
-5. Ask the user to choose one onboarding mode:
+6. Ask the user to choose one onboarding mode:
    - `structured_alignment_workspace`
    - `playful_alignment_experience`
-6. Save the choice through `POST /api/v1/onboarding/preference`.
+7. Ask for runtime preferences:
+   - whether daily sync should run automatically
+   - what local time daily sync should run
+   - gameplay recommendation mode: `off`, `daily`, or `always_loop`
+   - whether passive gameplay recommendation is allowed
+   - interaction style preferences such as what the agent should avoid saying
+8. Save the choice through `POST /api/v1/onboarding/preference`.
 
 ## Local Data Model
 
@@ -100,6 +110,15 @@ Do not stop the conversation just to narrate the write unless the user asked to 
 
 ## Two Top-Level Experiences
 
+Before choosing any gameplay structure, first determine which of these is true:
+
+- the user wants to complete a task right now
+- the user wants to continue an existing gameplay
+- the user wants a daily sync only
+- the user wants to try a new gameplay
+
+The default is not “stay in a gameplay forever.” The default is “follow the user's current goal.”
+
 ### Structured Alignment Workspace
 
 This is the default serious mode.
@@ -127,6 +146,55 @@ visual, or otherwise more playful.
 
 Use this mode when the user wants novelty, energy, challenge, or a less procedural experience.
 
+## User Intent First
+
+If the user explicitly proposes a new goal, task, or deliverable:
+
+1. prioritize that goal immediately
+2. do not force the user back into an existing gameplay loop
+3. offer gameplay only as an optional wrapper around the task
+
+Correct priority order:
+
+1. user intent
+2. active gameplay continuation
+3. daily sync
+4. passive gameplay recommendation
+
+## Gameplay Modes
+
+### `loop`
+
+Use loop gameplays when the same structure should repeat over time.
+
+Example:
+
+- five-dimension consciousness alignment
+
+Behavior:
+
+- user may revise any part of the structure on each round
+- the agent mirrors the same structure and highlights changes
+- each round can continue, pause, or stop
+- the user decides whether to keep looping
+
+### `one_shot`
+
+Use one-shot gameplays for a single experience that naturally ends after one run.
+
+Examples:
+
+- dark visual portfolio generation
+- seaside aesthetic alignment
+- a single image-based taste probe
+
+Behavior:
+
+- propose once
+- run once
+- collect user feedback
+- stop unless the user explicitly asks for another round
+
 ## Daily Alignment
 
 Daily alignment is not a gameplay and not a backend API. It is a lightweight daily
@@ -150,6 +218,12 @@ Daily alignment should feel slightly game-like:
 
 Do not send raw daily alignment content to the shared backend.
 
+Daily alignment is separate from gameplay:
+
+- it may suggest continuing a loop gameplay
+- it may suggest trying a one-shot gameplay
+- it may suggest nothing at all
+
 ## Gameplay Operations
 
 Shared gameplay registry lives on the backend.
@@ -167,15 +241,39 @@ Use:
 `/api/v1/gameplays/recommend` is for community discovery, not private analysis.
 Only send coarse context such as:
 
+- `trigger`
+  - `daily_sync`
+  - `gameplay_completion`
+  - `user_requests_play`
 - `onboarding_mode`
 - `current_gameplay_id`
+- `active_gameplay_mode`
+- `last_completed_gameplay_id`
 - `preferred_gameplay_ids`
 - `exclude_recent_ids`
 - `desired_tags`
+- `user_goal_tags`
 - `available_tools`
 - `stage_band`
+- `allow_one_shot`
+- `allow_loop`
+- `prefer_continue_style`
 
 Do not send raw consciousness records, snapshots, or full score history.
+
+Treat gameplay recommendation mode as a local runtime policy:
+
+- `off`
+  - do not proactively recommend gameplays
+- `daily`
+  - daily sync may end with one gameplay suggestion
+- `always_loop`
+  - when a gameplay is completed, immediately propose the next gameplay
+
+Important:
+
+- `always_loop` does not override a new user goal
+- if a `loop` gameplay is still active, prefer continuing it before proposing a different gameplay
 
 When the user wants to create a new gameplay:
 

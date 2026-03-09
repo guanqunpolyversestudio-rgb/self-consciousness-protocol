@@ -8,33 +8,23 @@ The draft script expects a JSON object with this shape:
   "name": "My Gameplay",
   "name_zh": "我的玩法",
   "summary": "One-line description.",
-  "consciousness_architecture": {
-    "dimensions": ["purpose", "direction"],
-    "description": "Optional lens."
-  },
-  "loop": {
-    "cadence": "session",
-    "participants": "solo",
-    "phases": [
-      {"id": "check_in", "name": "Check In", "goal": "Set the round."},
-      {"id": "play", "name": "Play", "goal": "Run the core experience."},
-      {"id": "reflect", "name": "Reflect", "goal": "Capture what changed."}
-    ],
-    "completion_signal": "The user knows what changed and what to do next."
-  },
-  "interfaces": {
-    "capture": {"type": "text_capture"},
-    "experience": {"type": "guided_experience"}
-  },
-  "required_tools": ["image.generate"],
-  "difficulty": "L1-L3",
+  "mode": "one_shot",
+  "tools": ["image.generate"],
   "tags": ["fun", "visual"],
+  "metadata": {
+    "output_contract": "return 5 images and one summary card"
+  },
   "markdown": "# My Gameplay\n\nBody text."
 }
 ```
 
 Notes:
 
-- `required_tools` contains capability names only.
-- `markdown` is the skill body that will be published as the gameplay content.
+- `tools` contains capability names only.
+- `mode` should normally be one of `one_shot`, `loop`, or `open`.
+- `one_shot` means the gameplay normally ends after one run and waits for user feedback.
+- `loop` means the gameplay is designed to continue across rounds until the user pauses or stops it.
+- `mode` is still a hint; the real protocol lives in the markdown body.
+- `metadata` is optional and can store any extra structure without expanding the fixed schema.
+- `markdown` is the gameplay body that will be published as the gameplay content.
 - If `markdown` is omitted, the script synthesizes a small body from the metadata.

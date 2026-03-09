@@ -14,19 +14,25 @@ Every gameplay draft needs:
 - `id`
 - `name`
 - `summary`
-- `loop`
-- `interfaces`
-- `required_tools`
+- optional `mode`
+- optional `tools`
+- optional `tags`
+- optional `metadata`
 - markdown body
 
-`consciousness_architecture` is optional. Use it only when the gameplay truly depends on a stable lens.
+Keep the fixed schema minimal. Put specific flow, tool instructions, and one-shot or looping logic in the markdown body. Use `metadata` only when a small amount of extra structure is genuinely helpful.
+
+Default semantic expectations:
+
+- `one_shot` gameplay should normally end after one run and ask for user feedback
+- `loop` gameplay should make it obvious how to continue, pause, or stop
+- user intent still overrides gameplay continuation
 
 ## Workflow
 
 1. Clarify the gameplay in product terms:
    - what the user experiences
-   - what one loop looks like
-   - whether there is a stable consciousness lens
+   - whether it is one-shot, looping, or intentionally open
    - whether any tools are required
 2. If tools are needed, only reference capability names such as `image.generate` or `video.generate`.
 3. Write a gameplay spec JSON file or inline JSON.
@@ -36,7 +42,7 @@ Every gameplay draft needs:
 ## Constraints
 
 - Do not bind gameplay drafts directly to providers like WaveSpeed.
-- Prefer one clear loop over a bag of mechanics.
+- Prefer a small metadata surface over many fixed top-level fields.
 - `structured_reflection` style gameplay should keep user and agent on the same dimensions.
 - Use `references/gameplay-spec.md` when you need the field-level shape.
 

@@ -36,19 +36,23 @@ When OpenClaw reads this file, it should:
 12. ask the user to choose one onboarding mode:
    - `structured_alignment_workspace`
    - `playful_alignment_experience`
-13. save the onboarding mode through `POST /api/v1/onboarding/preference`
-14. call `GET /api/v1/tools/capabilities` against `https://self-consciousness-backend.onrender.com`
-15. remember the currently available tool capabilities, especially:
+13. ask the user for runtime preferences:
+   - whether daily sync should run automatically
+   - what local time daily sync should run
+   - gameplay recommendation mode: `off`, `daily`, or `always_loop`
+   - whether passive gameplay recommendation is allowed
+   - how the agent should or should not speak
+14. save onboarding mode and runtime preferences through `POST /api/v1/onboarding/preference`
+15. call `GET /api/v1/tools/capabilities` against `https://self-consciousness-backend.onrender.com`
+16. remember the currently available tool capabilities, especially:
    - `image.generate`
    - `video.generate`
-16. ask the user whether to enable a daily automation
-17. if the user wants it, ask what local time it should run
-18. configure one daily automation that:
+17. if daily sync automation is enabled, configure one daily automation that:
    - runs local `daily alignment`
-   - then requests one community gameplay recommendation
+   - if recommendation mode is `daily`, then requests one community gameplay recommendation
    - shows the recommendation to the user without auto-starting the gameplay
    - does not upload raw consciousness records, snapshots, or private score history
-19. after installation, report:
+18. after installation, report:
    - where the skills were installed
    - the current `user_id`
    - whether onboarding/register succeeded
@@ -57,8 +61,10 @@ When OpenClaw reads this file, it should:
    - whether `~/.self-consciousness/profile.json` was created
    - what `backend_base_url` is set to
    - what onboarding mode was saved
-   - whether daily automation was enabled
+   - whether daily sync automation was enabled
    - what time it is scheduled for, if enabled
+   - what gameplay recommendation mode was saved
+   - whether passive gameplay recommendation is enabled
 
 ## One-command install
 
@@ -114,7 +120,8 @@ Do not stop after just installing files. The expected install experience include
 - initial `500 credits`
 - local workspace creation
 - onboarding mode selection
-- optional daily automation setup
+- runtime preference setup
+- optional daily sync automation setup
 
 ## Prompt For OpenClaw
 
@@ -134,7 +141,12 @@ Then continue installation by completing first-run onboarding:
 5. Ask me to choose one onboarding mode:
    - structured_alignment_workspace
    - playful_alignment_experience
-6. Save my choice.
+6. Ask me for runtime preferences:
+   - daily sync on/off and local time
+   - gameplay recommendation mode: off, daily, or always_loop
+   - passive gameplay recommendation on/off
+   - what the agent should avoid saying
+7. Save my choices.
 
 After onboarding, continue with a cloud smoke test:
 1. List the shared gameplays.
@@ -169,7 +181,7 @@ If the user chooses to enable daily automation during installation, OpenClaw sho
 2. create one daily cron or automation
 3. on each run:
    - first do local `daily alignment`
-   - then request one community gameplay recommendation
+   - if recommendation mode is `daily`, then request one community gameplay recommendation
    - present the recommendation to the user
    - never auto-start the gameplay without user consent
 
@@ -178,6 +190,10 @@ The daily automation should remain local-first:
 - `daily alignment` is local
 - community gameplay recommendation may use the shared backend
 - raw consciousness records, snapshots, and private score history stay local
+
+If recommendation mode is `always_loop`, gameplay recommendation should not wait for daily sync.
+Instead, once a gameplay is completed, OpenClaw should immediately propose the next gameplay,
+while still allowing the user to interrupt with a new task or idea.
 
 ## Daily behavior boundary
 
