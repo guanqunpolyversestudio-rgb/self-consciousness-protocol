@@ -1,9 +1,47 @@
 #!/usr/bin/env node
-import { mkdir, readFile, writeFile, cp, readdir, stat } from "node:fs/promises";
-import { existsSync } from "node:fs";
-import os from "node:os";
-import path from "node:path";
-import { fileURLToPath } from "node:url";
+"use strict";
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || (function () {
+    var ownKeys = function(o) {
+        ownKeys = Object.getOwnPropertyNames || function (o) {
+            var ar = [];
+            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
+            return ar;
+        };
+        return ownKeys(o);
+    };
+    return function (mod) {
+        if (mod && mod.__esModule) return mod;
+        var result = {};
+        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
+        __setModuleDefault(result, mod);
+        return result;
+    };
+})();
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+const promises_1 = require("node:fs/promises");
+const node_fs_1 = require("node:fs");
+const node_os_1 = __importDefault(require("node:os"));
+const node_path_1 = __importDefault(require("node:path"));
+const sea = __importStar(require("node:sea"));
 const DEFAULT_BACKEND_URL = "https://self-consciousness-backend.onrender.com";
 const LEGACY_BACKEND_URLS = new Set([
     "",
@@ -12,11 +50,15 @@ const LEGACY_BACKEND_URLS = new Set([
     "https://127.0.0.1:8000",
     "https://localhost:8000",
 ]);
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const packageRoot = path.resolve(__dirname, "..");
-const packagedShareRoot = path.join(packageRoot, "share", "skills");
-const devShareRoot = path.resolve(packageRoot, "..");
-const profilePath = path.join(os.homedir(), ".self-consciousness", "profile.json");
+const packageRoot = node_path_1.default.resolve(__dirname, "..");
+const devShareRoot = node_path_1.default.resolve(packageRoot, "..");
+const profilePath = node_path_1.default.join(node_os_1.default.homedir(), ".self-consciousness", "profile.json");
+const embeddedSkillAssets = {
+    "self-consciousness/SKILL.md": "skill:self-consciousness/SKILL.md",
+    "gameplay-creator/SKILL.md": "skill:gameplay-creator/SKILL.md",
+    "gameplay-creator/references/gameplay-spec.md": "skill:gameplay-creator/references/gameplay-spec.md",
+    "gameplay-creator/scripts/create_gameplay_draft.py": "skill:gameplay-creator/scripts/create_gameplay_draft.py",
+};
 async function main() {
     const argv = process.argv.slice(2);
     if (argv.length === 0 || hasFlag(argv, "--help") || hasFlag(argv, "-h")) {
@@ -134,29 +176,29 @@ function nowIso() {
     return new Date().toISOString();
 }
 function getUserRoot(userId) {
-    return path.join(os.homedir(), ".self-consciousness", "users", userId);
+    return node_path_1.default.join(node_os_1.default.homedir(), ".self-consciousness", "users", userId);
 }
 function getWorkspace(userId) {
     const root = getUserRoot(userId);
     return {
         root,
-        db_path: path.join(root, "consciousness.db"),
-        gameplay_drafts_dir: path.join(root, "gameplay_drafts"),
-        gameplay_cache_dir: path.join(root, "gameplay_cache"),
-        automation_state_path: path.join(root, "automation_state.json"),
-        artifacts_dir: path.join(root, "artifacts"),
-        logs_dir: path.join(os.homedir(), ".self-consciousness", "logs"),
+        db_path: node_path_1.default.join(root, "consciousness.db"),
+        gameplay_drafts_dir: node_path_1.default.join(root, "gameplay_drafts"),
+        gameplay_cache_dir: node_path_1.default.join(root, "gameplay_cache"),
+        automation_state_path: node_path_1.default.join(root, "automation_state.json"),
+        artifacts_dir: node_path_1.default.join(root, "artifacts"),
+        logs_dir: node_path_1.default.join(node_os_1.default.homedir(), ".self-consciousness", "logs"),
     };
 }
 async function ensureWorkspace(userId) {
     const workspace = getWorkspace(userId);
-    await mkdir(workspace.root, { recursive: true });
-    await mkdir(workspace.gameplay_drafts_dir, { recursive: true });
-    await mkdir(workspace.gameplay_cache_dir, { recursive: true });
-    await mkdir(workspace.artifacts_dir, { recursive: true });
-    await mkdir(workspace.logs_dir, { recursive: true });
-    if (!existsSync(workspace.automation_state_path)) {
-        await writeFile(workspace.automation_state_path, JSON.stringify(defaultAutomationState(), null, 2) + "\n", "utf-8");
+    await (0, promises_1.mkdir)(workspace.root, { recursive: true });
+    await (0, promises_1.mkdir)(workspace.gameplay_drafts_dir, { recursive: true });
+    await (0, promises_1.mkdir)(workspace.gameplay_cache_dir, { recursive: true });
+    await (0, promises_1.mkdir)(workspace.artifacts_dir, { recursive: true });
+    await (0, promises_1.mkdir)(workspace.logs_dir, { recursive: true });
+    if (!(0, node_fs_1.existsSync)(workspace.automation_state_path)) {
+        await (0, promises_1.writeFile)(workspace.automation_state_path, JSON.stringify(defaultAutomationState(), null, 2) + "\n", "utf-8");
     }
     return workspace;
 }
@@ -184,7 +226,7 @@ function defaultAutomationState() {
     };
 }
 async function readProfile() {
-    if (!existsSync(profilePath)) {
+    if (!(0, node_fs_1.existsSync)(profilePath)) {
         return {
             current_user_id: "",
             backend_base_url: DEFAULT_BACKEND_URL,
@@ -193,7 +235,7 @@ async function readProfile() {
         };
     }
     try {
-        const parsed = JSON.parse(await readFile(profilePath, "utf-8"));
+        const parsed = JSON.parse(await (0, promises_1.readFile)(profilePath, "utf-8"));
         return {
             current_user_id: parsed.current_user_id ?? "",
             backend_base_url: parsed.backend_base_url ?? DEFAULT_BACKEND_URL,
@@ -211,9 +253,9 @@ async function readProfile() {
     }
 }
 async function writeProfile(profile) {
-    await mkdir(path.dirname(profilePath), { recursive: true });
+    await (0, promises_1.mkdir)(node_path_1.default.dirname(profilePath), { recursive: true });
     profile.updated_at = nowIso();
-    await writeFile(profilePath, JSON.stringify(profile, null, 2) + "\n", "utf-8");
+    await (0, promises_1.writeFile)(profilePath, JSON.stringify(profile, null, 2) + "\n", "utf-8");
 }
 async function upsertLocalUser(userId, options) {
     const workspace = await ensureWorkspace(userId);
@@ -259,28 +301,31 @@ async function backendRequest(method, endpoint, body, backendUrl = "") {
 async function cmdInstall(args) {
     const skillsDir = requireString(args, "skills-dir");
     const backendUrl = optionalString(args, "backend-url") || DEFAULT_BACKEND_URL;
-    const packagedMode = existsSync(packagedShareRoot);
-    const selfSkillSource = packagedMode
-        ? path.join(packagedShareRoot, "self-consciousness", "SKILL.md")
-        : path.join(devShareRoot, "SKILL.md");
-    const gameplayCreatorSource = packagedMode
-        ? path.join(packagedShareRoot, "gameplay-creator")
-        : path.join(devShareRoot, "gameplay-creator");
-    const selfSkillDir = path.join(skillsDir, "self-consciousness");
-    const gameplayCreatorDir = path.join(skillsDir, "gameplay-creator");
-    await mkdir(selfSkillDir, { recursive: true });
-    await mkdir(gameplayCreatorDir, { recursive: true });
-    await cp(selfSkillSource, path.join(selfSkillDir, "SKILL.md"));
-    await copyDir(gameplayCreatorSource, gameplayCreatorDir);
+    const selfSkillDir = node_path_1.default.join(skillsDir, "self-consciousness");
+    const gameplayCreatorDir = node_path_1.default.join(skillsDir, "gameplay-creator");
+    await (0, promises_1.mkdir)(selfSkillDir, { recursive: true });
+    await (0, promises_1.mkdir)(gameplayCreatorDir, { recursive: true });
+    if (sea.isSea()) {
+        await writeEmbeddedSkillFile("self-consciousness/SKILL.md", node_path_1.default.join(selfSkillDir, "SKILL.md"));
+        await writeEmbeddedSkillFile("gameplay-creator/SKILL.md", node_path_1.default.join(gameplayCreatorDir, "SKILL.md"));
+        await writeEmbeddedSkillFile("gameplay-creator/references/gameplay-spec.md", node_path_1.default.join(gameplayCreatorDir, "references", "gameplay-spec.md"));
+        await writeEmbeddedSkillFile("gameplay-creator/scripts/create_gameplay_draft.py", node_path_1.default.join(gameplayCreatorDir, "scripts", "create_gameplay_draft.py"));
+    }
+    else {
+        const selfSkillSource = node_path_1.default.join(devShareRoot, "SKILL.md");
+        const gameplayCreatorSource = node_path_1.default.join(devShareRoot, "gameplay-creator");
+        await (0, promises_1.cp)(selfSkillSource, node_path_1.default.join(selfSkillDir, "SKILL.md"));
+        await copyDir(gameplayCreatorSource, gameplayCreatorDir);
+    }
     const profile = await readProfile();
     profile.backend_base_url = LEGACY_BACKEND_URLS.has(profile.backend_base_url) ? backendUrl : profile.backend_base_url;
     await writeProfile(profile);
-    await mkdir(path.join(os.homedir(), ".self-consciousness"), { recursive: true });
+    await (0, promises_1.mkdir)(node_path_1.default.join(node_os_1.default.homedir(), ".self-consciousness"), { recursive: true });
     process.stdout.write(JSON.stringify({
         ok: true,
         cli: "selfcon",
         skills: [
-            path.join(selfSkillDir, "SKILL.md"),
+            node_path_1.default.join(selfSkillDir, "SKILL.md"),
             gameplayCreatorDir,
         ],
         profile_path: profilePath,
@@ -369,8 +414,8 @@ async function cmdGameplayPull(args) {
     }
     const gameplay = await backendRequest("GET", `/api/v1/gameplays/${gameplayId}`, undefined, optionalString(args, "backend-url"));
     const workspace = await ensureWorkspace(userId);
-    const targetPath = path.join(workspace.gameplay_cache_dir, `${gameplayId}.md`);
-    await writeFile(targetPath, serializeGameplayMarkdown(gameplay), "utf-8");
+    const targetPath = node_path_1.default.join(workspace.gameplay_cache_dir, `${gameplayId}.md`);
+    await (0, promises_1.writeFile)(targetPath, serializeGameplayMarkdown(gameplay), "utf-8");
     process.stdout.write(JSON.stringify({ ok: true, gameplay_id: gameplayId, cache_path: targetPath }, null, 2) + "\n");
 }
 async function cmdGameplayCreate(args) {
@@ -383,7 +428,7 @@ async function cmdGameplayCreate(args) {
     const name = requireString(args, "name");
     const summary = requireString(args, "summary");
     const workspace = await ensureWorkspace(userId);
-    const outputPath = optionalString(args, "out") || path.join(workspace.gameplay_drafts_dir, `${gameplayId}.md`);
+    const outputPath = optionalString(args, "out") || node_path_1.default.join(workspace.gameplay_drafts_dir, `${gameplayId}.md`);
     const mode = optionalString(args, "mode") || "open";
     const tools = optionalString(args, "tools") ? parseCsv(optionalString(args, "tools")) : [];
     const tags = optionalString(args, "tags") ? parseCsv(optionalString(args, "tags")) : [];
@@ -391,7 +436,7 @@ async function cmdGameplayCreate(args) {
         ? JSON.parse(optionalString(args, "metadata-json"))
         : {};
     const markdown = optionalString(args, "markdown-file")
-        ? await readFile(optionalString(args, "markdown-file"), "utf-8")
+        ? await (0, promises_1.readFile)(optionalString(args, "markdown-file"), "utf-8")
         : synthesizeGameplayMarkdown({ id: gameplayId, name, summary, mode, tools, tags, metadata });
     const content = serializeGameplayMarkdown({
         id: gameplayId,
@@ -405,7 +450,7 @@ async function cmdGameplayCreate(args) {
         markdown,
         created_at: nowIso(),
     });
-    await writeFile(outputPath, content, "utf-8");
+    await (0, promises_1.writeFile)(outputPath, content, "utf-8");
     process.stdout.write(JSON.stringify({ ok: true, file: outputPath }, null, 2) + "\n");
 }
 async function cmdGameplayPublish(args) {
@@ -415,25 +460,34 @@ async function cmdGameplayPublish(args) {
         throw new Error("Missing user id. Use --user-id or run selfcon onboard first.");
     }
     const file = requireString(args, "file");
-    const markdown = await readFile(file, "utf-8");
+    const markdown = await (0, promises_1.readFile)(file, "utf-8");
     const response = await backendRequest("POST", "/api/v1/gameplays/contribute", { user_id: userId, markdown }, optionalString(args, "backend-url"));
     process.stdout.write(JSON.stringify(response, null, 2) + "\n");
 }
 async function copyDir(source, target) {
-    await mkdir(target, { recursive: true });
-    const entries = await readdir(source);
+    await (0, promises_1.mkdir)(target, { recursive: true });
+    const entries = await (0, promises_1.readdir)(source);
     for (const entry of entries) {
-        const sourcePath = path.join(source, entry);
-        const targetPath = path.join(target, entry);
-        const sourceStat = await stat(sourcePath);
+        const sourcePath = node_path_1.default.join(source, entry);
+        const targetPath = node_path_1.default.join(target, entry);
+        const sourceStat = await (0, promises_1.stat)(sourcePath);
         if (sourceStat.isDirectory()) {
             await copyDir(sourcePath, targetPath);
         }
         else {
-            await mkdir(path.dirname(targetPath), { recursive: true });
-            await cp(sourcePath, targetPath);
+            await (0, promises_1.mkdir)(node_path_1.default.dirname(targetPath), { recursive: true });
+            await (0, promises_1.cp)(sourcePath, targetPath);
         }
     }
+}
+async function writeEmbeddedSkillFile(relativePath, targetPath) {
+    const assetKey = embeddedSkillAssets[relativePath];
+    const asset = sea.getAsset(assetKey);
+    if (!asset) {
+        throw new Error(`Missing embedded asset: ${relativePath}`);
+    }
+    await (0, promises_1.mkdir)(node_path_1.default.dirname(targetPath), { recursive: true });
+    await (0, promises_1.writeFile)(targetPath, Buffer.from(asset));
 }
 function serializeGameplayMarkdown(data) {
     const metadata = {

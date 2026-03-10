@@ -5,7 +5,6 @@ OWNER_REPO="guanqunpolyversestudio-rgb/self-consciousness-protocol"
 REF="main"
 DEFAULT_BACKEND_URL="https://self-consciousness-backend.onrender.com"
 CLI_NAME="selfcon"
-CLI_ALIAS="self-consciousness"
 SKILLS_DIR="${OPENCLAW_SKILLS_DIR:-}"
 
 usage() {
@@ -42,11 +41,6 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
-if ! command -v node >/dev/null 2>&1; then
-  echo "Node.js is required to run ${CLI_NAME}. Please install Node.js 20+ and retry." >&2
-  exit 1
-fi
-
 OS="$(uname -s)"
 ARCH="$(uname -m)"
 case "${OS}" in
@@ -66,6 +60,7 @@ case "${ARCH}" in
 esac
 
 RAW_BASE="https://raw.githubusercontent.com/${OWNER_REPO}/${REF}"
+RELEASE_BASE="https://github.com/${OWNER_REPO}/releases/download"
 TMP_ROOT="$(mktemp -d)"
 cleanup() {
   rm -rf "${TMP_ROOT}"
@@ -85,33 +80,25 @@ INSTALL_BASE="${HOME}/.local/share/${CLI_NAME}/versions"
 TMP_VERSION_DIR="${INSTALL_BASE}/.tmp-${VERSION}-$(date +%s)"
 FINAL_VERSION_DIR="${INSTALL_BASE}/${VERSION}"
 BIN_DIR="${HOME}/.local/bin"
+PLATFORM="$(printf '%s' "${OS}" | tr '[:upper:]' '[:lower:]')"
+ASSET_NAME="${CLI_NAME}-${VERSION}-${PLATFORM}-${ARCH}.tar.gz"
+ASSET_URL="${RELEASE_BASE}/v${VERSION}/${ASSET_NAME}"
 
-mkdir -p "${TMP_VERSION_DIR}/dist" \
-         "${TMP_VERSION_DIR}/share/skills/self-consciousness" \
-         "${TMP_VERSION_DIR}/share/skills/gameplay-creator/references" \
-         "${TMP_VERSION_DIR}/share/skills/gameplay-creator/scripts" \
-         "${BIN_DIR}"
+mkdir -p "${TMP_VERSION_DIR}" "${BIN_DIR}"
 
-curl -fsSL "${RAW_BASE}/cli/dist/index.js" -o "${TMP_VERSION_DIR}/dist/index.js"
-curl -fsSL "${RAW_BASE}/SKILL.md" -o "${TMP_VERSION_DIR}/share/skills/self-consciousness/SKILL.md"
-curl -fsSL "${RAW_BASE}/gameplay-creator/SKILL.md" -o "${TMP_VERSION_DIR}/share/skills/gameplay-creator/SKILL.md"
-curl -fsSL "${RAW_BASE}/gameplay-creator/references/gameplay-spec.md" -o "${TMP_VERSION_DIR}/share/skills/gameplay-creator/references/gameplay-spec.md"
-curl -fsSL "${RAW_BASE}/gameplay-creator/scripts/create_gameplay_draft.py" -o "${TMP_VERSION_DIR}/share/skills/gameplay-creator/scripts/create_gameplay_draft.py"
-cp "${TMP_ROOT}/package.json" "${TMP_VERSION_DIR}/package.json"
+if ! curl -fsSL "${ASSET_URL}" -o "${TMP_ROOT}/${ASSET_NAME}"; then
+  echo "Failed to download ${ASSET_URL}" >&2
+  echo "Make sure release v${VERSION} contains ${ASSET_NAME}." >&2
+  exit 1
+fi
 
-cat > "${TMP_VERSION_DIR}/${CLI_NAME}" <<EOF
-#!/usr/bin/env bash
-set -euo pipefail
-exec node "${FINAL_VERSION_DIR}/dist/index.js" "\$@"
-EOF
-chmod +x "${TMP_VERSION_DIR}/${CLI_NAME}"
+tar -xzf "${TMP_ROOT}/${ASSET_NAME}" -C "${TMP_VERSION_DIR}"
 
 rm -rf "${FINAL_VERSION_DIR}"
 mkdir -p "${INSTALL_BASE}"
 mv "${TMP_VERSION_DIR}" "${FINAL_VERSION_DIR}"
 
 ln -sfn "${FINAL_VERSION_DIR}/${CLI_NAME}" "${BIN_DIR}/${CLI_NAME}"
-ln -sfn "${FINAL_VERSION_DIR}/${CLI_NAME}" "${BIN_DIR}/${CLI_ALIAS}"
 
 if [[ -n "${SKILLS_DIR}" ]]; then
   "${BIN_DIR}/${CLI_NAME}" install --skills-dir "${SKILLS_DIR}" --backend-url "${DEFAULT_BACKEND_URL}"
@@ -122,7 +109,6 @@ Installed ${CLI_NAME} ${VERSION} for ${OS}/${ARCH}
 
 CLI:
 - ${BIN_DIR}/${CLI_NAME}
-- ${BIN_DIR}/${CLI_ALIAS}
 
 Version dir:
 - ${FINAL_VERSION_DIR}

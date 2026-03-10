@@ -6,7 +6,7 @@ This file is the bootstrap guide for installing the `self-consciousness` skill i
 
 The installer now installs:
 
-- the `selfcon` CLI under `~/.local/bin/`
+- the `selfcon` single-file CLI under `~/.local/bin/`
 - versioned CLI files under `~/.local/share/selfcon/versions/`
 - the local skill layer into OpenClaw, when a skills directory is provided
 
@@ -18,11 +18,6 @@ The OpenClaw skill layer includes:
 
 Private consciousness data stays local in `~/.self-consciousness/`.
 
-Current installer note:
-
-- the CLI is TypeScript-built and runs with local Node.js
-- it is versioned like a Cursor-style installer, but it is not yet a native single-file binary
-
 Default shared backend for testing:
 
 - `https://self-consciousness-backend.onrender.com`
@@ -32,9 +27,8 @@ Default shared backend for testing:
 When OpenClaw reads this file, it should:
 
 1. run the installer script so that `selfcon` is installed locally
-2. ensure these commands exist:
+2. ensure this command exists:
    - `selfcon`
-   - `self-consciousness`
 3. if an OpenClaw skills directory is known, make sure the installer also installs:
    - `self-consciousness`
    - `gameplay-creator`

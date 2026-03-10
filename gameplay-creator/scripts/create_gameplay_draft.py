@@ -29,34 +29,27 @@ def _load_spec(args) -> dict:
 
 
 def _synthesize_markdown(spec: dict) -> str:
-    loop = spec.get("loop", {})
-    phases = loop.get("phases", [])
     lines = [
         f"# {spec.get('name_zh') or spec['name']}",
         "",
         spec.get("summary", "").strip(),
-        "",
-        "## Loop",
-        "",
-        f"- cadence: `{loop.get('cadence', 'session')}`",
-        f"- participants: `{loop.get('participants', 'solo')}`",
-        "",
-        "## Phases",
-        "",
     ]
-    for phase in phases:
-        lines.append(f"- `{phase.get('id', 'phase')}`: {phase.get('goal', '').strip()}")
-    architecture = spec.get("consciousness_architecture") or {}
-    if architecture:
+    mode = (spec.get("mode") or "").strip()
+    tools = spec.get("tools") or spec.get("required_tools") or []
+    metadata = spec.get("metadata") or {}
+    if mode:
         lines.extend([
             "",
-            "## Consciousness Architecture",
+            "## Mode",
             "",
-            architecture.get("description", "").strip() or "Optional lens.",
+            f"`{mode}`",
         ])
-        dims = architecture.get("dimensions") or []
-        if dims:
-            lines.append(f"- dimensions: `{', '.join(dims)}`")
+    if tools:
+        lines.extend(["", "## Tools", ""])
+        for tool in tools:
+            lines.append(f"- `{tool}`")
+    if metadata:
+        lines.extend(["", "## Notes", "", "```json", json.dumps(metadata, ensure_ascii=False, indent=2), "```"])
     return "\n".join(lines).strip() + "\n"
 
 
@@ -66,17 +59,27 @@ def _normalize_spec(spec: dict) -> dict:
     if missing:
         raise SystemExit(f"Missing required spec fields: {', '.join(missing)}")
 
+    metadata = spec.get("metadata") or {}
+    legacy_metadata = {}
+    for key in ("consciousness_architecture", "loop", "interfaces", "difficulty"):
+        value = spec.get(key)
+        if value not in (None, "", [], {}):
+            legacy_metadata[key] = value
+    metadata = {**legacy_metadata, **metadata}
+
+    mode = spec.get("mode", "")
+    if not str(mode).strip():
+        mode = "loop" if metadata.get("loop") else "open"
+
     normalized = {
         "id": spec["id"],
         "name": spec["name"],
         "name_zh": spec.get("name_zh", ""),
         "summary": spec["summary"],
-        "consciousness_architecture": spec.get("consciousness_architecture"),
-        "loop": spec.get("loop", {}),
-        "interfaces": spec.get("interfaces", {}),
-        "required_tools": spec.get("required_tools", []),
-        "difficulty": spec.get("difficulty", ""),
+        "mode": mode,
+        "tools": spec.get("tools", spec.get("required_tools", [])),
         "tags": spec.get("tags", []),
+        "metadata": metadata,
         "created_at": spec.get("created_at") or _now(),
     }
     body = spec.get("markdown") or spec.get("body") or _synthesize_markdown(normalized)

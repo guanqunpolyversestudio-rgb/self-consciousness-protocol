@@ -3,7 +3,7 @@ import { mkdir, readFile, writeFile, cp, readdir, stat } from "node:fs/promises"
 import { existsSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import { fileURLToPath } from "node:url";
+import * as sea from "node:sea";
 
 const DEFAULT_BACKEND_URL = "https://self-consciousness-backend.onrender.com";
 const LEGACY_BACKEND_URLS = new Set([
@@ -41,11 +41,15 @@ type Workspace = {
 
 type ArgMap = Record<string, string | boolean>;
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const packageRoot = path.resolve(__dirname, "..");
-const packagedShareRoot = path.join(packageRoot, "share", "skills");
 const devShareRoot = path.resolve(packageRoot, "..");
 const profilePath = path.join(os.homedir(), ".self-consciousness", "profile.json");
+const embeddedSkillAssets = {
+  "self-consciousness/SKILL.md": "skill:self-consciousness/SKILL.md",
+  "gameplay-creator/SKILL.md": "skill:gameplay-creator/SKILL.md",
+  "gameplay-creator/references/gameplay-spec.md": "skill:gameplay-creator/references/gameplay-spec.md",
+  "gameplay-creator/scripts/create_gameplay_draft.py": "skill:gameplay-creator/scripts/create_gameplay_draft.py",
+} as const;
 
 async function main() {
   const argv = process.argv.slice(2);
@@ -313,19 +317,27 @@ async function backendRequest(method: string, endpoint: string, body?: unknown, 
 async function cmdInstall(args: ArgMap) {
   const skillsDir = requireString(args, "skills-dir");
   const backendUrl = optionalString(args, "backend-url") || DEFAULT_BACKEND_URL;
-  const packagedMode = existsSync(packagedShareRoot);
-  const selfSkillSource = packagedMode
-    ? path.join(packagedShareRoot, "self-consciousness", "SKILL.md")
-    : path.join(devShareRoot, "SKILL.md");
-  const gameplayCreatorSource = packagedMode
-    ? path.join(packagedShareRoot, "gameplay-creator")
-    : path.join(devShareRoot, "gameplay-creator");
   const selfSkillDir = path.join(skillsDir, "self-consciousness");
   const gameplayCreatorDir = path.join(skillsDir, "gameplay-creator");
   await mkdir(selfSkillDir, { recursive: true });
   await mkdir(gameplayCreatorDir, { recursive: true });
-  await cp(selfSkillSource, path.join(selfSkillDir, "SKILL.md"));
-  await copyDir(gameplayCreatorSource, gameplayCreatorDir);
+  if (sea.isSea()) {
+    await writeEmbeddedSkillFile("self-consciousness/SKILL.md", path.join(selfSkillDir, "SKILL.md"));
+    await writeEmbeddedSkillFile("gameplay-creator/SKILL.md", path.join(gameplayCreatorDir, "SKILL.md"));
+    await writeEmbeddedSkillFile(
+      "gameplay-creator/references/gameplay-spec.md",
+      path.join(gameplayCreatorDir, "references", "gameplay-spec.md"),
+    );
+    await writeEmbeddedSkillFile(
+      "gameplay-creator/scripts/create_gameplay_draft.py",
+      path.join(gameplayCreatorDir, "scripts", "create_gameplay_draft.py"),
+    );
+  } else {
+    const selfSkillSource = path.join(devShareRoot, "SKILL.md");
+    const gameplayCreatorSource = path.join(devShareRoot, "gameplay-creator");
+    await cp(selfSkillSource, path.join(selfSkillDir, "SKILL.md"));
+    await copyDir(gameplayCreatorSource, gameplayCreatorDir);
+  }
 
   const profile = await readProfile();
   profile.backend_base_url = LEGACY_BACKEND_URLS.has(profile.backend_base_url) ? backendUrl : profile.backend_base_url;
@@ -497,6 +509,16 @@ async function copyDir(source: string, target: string) {
       await cp(sourcePath, targetPath);
     }
   }
+}
+
+async function writeEmbeddedSkillFile(relativePath: keyof typeof embeddedSkillAssets, targetPath: string) {
+  const assetKey = embeddedSkillAssets[relativePath];
+  const asset = sea.getAsset(assetKey);
+  if (!asset) {
+    throw new Error(`Missing embedded asset: ${relativePath}`);
+  }
+  await mkdir(path.dirname(targetPath), { recursive: true });
+  await writeFile(targetPath, Buffer.from(asset));
 }
 
 function serializeGameplayMarkdown(data: {
