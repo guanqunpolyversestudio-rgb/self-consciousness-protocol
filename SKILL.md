@@ -49,7 +49,7 @@ The product model is:
 
 - local first for private consciousness data
 - shared backend only for onboarding, gameplays, tasks, credits, and tool jobs
-- default shared backend base URL: `https://self-consciousness-backend.onrender.com`
+- the default shared backend is already built into `selfcon`
 - gameplay and daily alignment are different things
 - gameplay can be `one_shot` or `loop`
 - the user's current intention always has higher priority than gameplay momentum
@@ -58,8 +58,8 @@ The product model is:
 ## Core Rules
 
 1. Always treat `~/.self-consciousness/` as the user's private workspace.
-2. Unless the user explicitly overrides it, use `https://self-consciousness-backend.onrender.com` as the shared backend base URL.
-3. Prefer `selfcon` CLI commands over raw HTTP calls whenever the CLI is available.
+2. Prefer `selfcon` CLI commands over raw transport details whenever the CLI is available.
+3. The shared backend URL should stay implicit unless the user is explicitly debugging or overriding it.
 4. Register the user before doing any shared action.
    Preferred path: `selfcon onboard --user-id <id>`
 5. Keep raw consciousness local in the four main tables:
@@ -86,30 +86,28 @@ On first activation:
 
 1. If `selfcon` is not installed yet, instruct the user to install it via `self-consciousness-install.md`.
 2. Ask for or infer a `user_id`.
-3. Use `https://self-consciousness-backend.onrender.com` as the default shared backend unless the user provided another one.
-4. Run `selfcon onboard --user-id <id>`.
+3. Run `selfcon onboard --user-id <id>`.
 4. Confirm:
    - `user_id`
    - credits should start at `500`
    - local workspace path under `~/.self-consciousness/users/<user_id>/`
-5. Save the backend base URL in `~/.self-consciousness/profile.json`.
-6. Do not ask the user to choose an abstract onboarding mode.
+5. Do not ask the user to choose an abstract onboarding mode.
    Internally, treat the default onboarding mode as `user_intent_first`.
-7. Ask for runtime preferences:
+6. Ask for runtime preferences:
    - whether daily sync should run automatically
    - what local time daily sync should run
    - gameplay recommendation mode: `off`, `daily`, or `always_loop`
    - whether passive gameplay recommendation is allowed
    - interaction style preferences such as what the agent should avoid saying
-8. Save the runtime preferences through `selfcon prefs set ...`.
-9. Do not stop at setup summary only.
-10. If the user does not immediately introduce another task, start the first gameplay round right away.
-11. Default first gameplay:
+7. Save the runtime preferences through `selfcon prefs set ...`.
+8. Do not stop at setup summary only.
+9. If the user does not immediately introduce another task, start the first gameplay round right away.
+10. Default first gameplay:
     - local five-dimension alignment
     - ask for `purpose`, `direction`, `constraints`, `evaluation`, and `interaction`
     - mirror those five dimensions back
     - continue the loop from there
-12. If the user explicitly prefers something more playful, request one community gameplay recommendation and start that instead.
+11. If the user explicitly prefers something more playful, request one community gameplay recommendation and start that instead.
 
 ## Local Data Model
 
@@ -249,7 +247,8 @@ Daily alignment is separate from gameplay:
 
 ## Gameplay Operations
 
-Shared gameplay registry lives on the backend.
+Shared gameplay registry lives on the backend, but treat it as a capability behind `selfcon`,
+not as a user-facing HTTP surface.
 
 Preferred CLI:
 
@@ -262,15 +261,7 @@ Preferred CLI:
 
 Raw backend APIs are fallback only:
 
-- `GET /api/v1/gameplays`
-- `GET /api/v1/gameplays/{id}`
-- `POST /api/v1/gameplays/recommend`
-- `POST /api/v1/gameplays/pull`
-- `POST /api/v1/gameplays/{user_id}/iterate`
-- `GET /api/v1/gameplays/{user_id}/current`
-- `GET /api/v1/gameplays/{user_id}/history`
-
-`/api/v1/gameplays/recommend` is for community discovery, not private analysis.
+Gameplay recommendation is for community discovery, not private analysis.
 Only send coarse context such as:
 
 - `trigger`
@@ -336,19 +327,11 @@ Lifecycle:
 4. reviewers review
 5. once verified or rejected, settle the task
 
-Use:
-
-- `POST /api/v1/tasks`
-- `POST /api/v1/tasks/{id}/claim`
-- `POST /api/v1/tasks/{id}/solve`
-- `POST /api/v1/tasks/{id}/review`
-- `POST /api/v1/tasks/{id}/settle`
+Use the shared task flow as a capability, not as a user-facing endpoint list.
 
 Do not describe task creation as a flat “-5 credits” action anymore. It is price-based escrow.
 
 ## Tools Gateway
-
-Tool capabilities are exposed through `/api/v1/tools/capabilities`.
 
 Current implemented capabilities:
 
@@ -361,13 +344,7 @@ Current provider path:
 - image default model: `bytedance/seedream-v5.0-lite`
 - video default model: `bytedance/seedance-v1.5-pro/text-to-video-fast`
 
-Prefer CLI for user-facing flows. Use direct API calls only when the CLI does not cover the operation yet.
-
-Current raw endpoints:
-
-- `POST /api/v1/tools/image/generate`
-- `POST /api/v1/tools/video/generate`
-- `GET /api/v1/tools/jobs/{id}`
+Prefer CLI and capability language for user-facing flows. Use direct API calls only when you are explicitly debugging transport behavior.
 
 Credit rules:
 
