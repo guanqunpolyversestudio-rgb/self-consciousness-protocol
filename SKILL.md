@@ -68,6 +68,14 @@ On first activation:
    - whether passive gameplay recommendation is allowed
    - interaction style preferences such as what the agent should avoid saying
 8. Save the runtime preferences through `POST /api/v1/onboarding/preference`.
+9. Do not stop at setup summary only.
+10. If the user does not immediately introduce another task, start the first gameplay round right away.
+11. Default first gameplay:
+    - local five-dimension alignment
+    - ask for `purpose`, `direction`, `constraints`, `evaluation`, and `interaction`
+    - mirror those five dimensions back
+    - continue the loop from there
+12. If the user explicitly prefers something more playful, request one community gameplay recommendation and start that instead.
 
 ## Local Data Model
 
@@ -123,6 +131,7 @@ The default is not “stay in a gameplay forever.” The default is “follow th
 If the user wants clarity or planning, you may choose a structured gameplay such as five-dimension alignment.
 If the user wants novelty or immersion, you may choose a more playful gameplay.
 Do not make the user pick between abstract labels before they know what those labels mean.
+After setup, if the user has no competing task, you should proactively lead them into one of these paths instead of waiting in idle mode.
 
 ## User Intent First
 

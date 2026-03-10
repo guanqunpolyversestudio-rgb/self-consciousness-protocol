@@ -52,7 +52,14 @@ When OpenClaw reads this file, it should:
    - if recommendation mode is `daily`, then requests one community gameplay recommendation
    - shows the recommendation to the user without auto-starting the gameplay
    - does not upload raw consciousness records, snapshots, or private score history
-20. after installation, report:
+20. after installation, do not stop at a setup summary
+21. if the user does not immediately propose a different task, lead the user into the first gameplay round right away:
+   - default path: start a local five-dimension alignment round
+   - ask for `purpose`, `direction`, `constraints`, `evaluation`, and `interaction`
+   - mirror those same five dimensions back to the user
+   - produce a first aligned response
+   - if the user prefers novelty instead, request one community gameplay recommendation and start that one instead
+22. after the first gameplay round has started, report:
    - where the skills were installed
    - the current `user_id`
    - whether onboarding/register succeeded
@@ -121,6 +128,7 @@ Do not stop after just installing files. The expected install experience include
 - internal default onboarding mode
 - runtime preference setup
 - optional daily sync automation setup
+- immediate entry into a first gameplay round unless the user clearly wants something else
 
 ## Prompt For OpenClaw
 
@@ -145,6 +153,14 @@ Then continue installation by completing first-run onboarding:
    - passive gameplay recommendation on/off
    - what the agent should avoid saying
 8. Save my choices.
+9. After setup, do not stop at a summary.
+10. If I do not introduce a different task, lead me into the first gameplay round immediately.
+11. Default first gameplay:
+   - a local five-dimension alignment loop
+   - ask for purpose, direction, constraints, evaluation, and interaction
+   - mirror those five dimensions back to me
+   - then continue the loop
+12. If I explicitly want something more playful, request one community gameplay recommendation and start that one instead.
 
 After onboarding, continue with a cloud smoke test:
 1. List the shared gameplays.
@@ -192,6 +208,9 @@ The daily automation should remain local-first:
 If recommendation mode is `always_loop`, gameplay recommendation should not wait for daily sync.
 Instead, once a gameplay is completed, OpenClaw should immediately propose the next gameplay,
 while still allowing the user to interrupt with a new task or idea.
+
+Even before the first daily sync happens, setup completion should already flow into one gameplay round.
+The installation experience is not complete if it ends at preference saving and never starts play.
 
 If a gameplay declares a `consciousness_architecture`, OpenClaw should use that architecture
 as the local lens for consciousness recording during that gameplay. If it does not, keep the
