@@ -100,6 +100,10 @@ async function main() {
             await cmdGameplayPublish(args);
             return;
         }
+        if (subtopic === "delete") {
+            await cmdGameplayDelete(args);
+            return;
+        }
     }
     throw new Error(`Unknown command: ${argv.join(" ")}`);
 }
@@ -124,6 +128,7 @@ Commands:
                           [--tools a,b] [--tags a,b] [--metadata-json '{"x":1}']
                           [--markdown-file <path>] [--out <path>]
   selfcon gameplay publish --file <path> [--user-id <id>] [--backend-url <url>]
+  selfcon gameplay delete --id <gameplay_id> [--user-id <id>] [--backend-url <url>]
 `);
 }
 function hasFlag(argv, flag) {
@@ -461,6 +466,16 @@ async function cmdGameplayPublish(args) {
     const file = requireString(args, "file");
     const markdown = await (0, promises_1.readFile)(file, "utf-8");
     const response = await backendRequest("POST", "/api/v1/gameplays/contribute", { user_id: userId, markdown }, optionalString(args, "backend-url"));
+    process.stdout.write(JSON.stringify(response, null, 2) + "\n");
+}
+async function cmdGameplayDelete(args) {
+    const gameplayId = requireString(args, "id");
+    const profile = await readProfile();
+    const userId = optionalString(args, "user-id") || profile.current_user_id;
+    if (!userId) {
+        throw new Error("Missing user id. Use --user-id or run selfcon onboard first.");
+    }
+    const response = await backendRequest("DELETE", `/api/v1/gameplays/${gameplayId}`, { user_id: userId }, optionalString(args, "backend-url"));
     process.stdout.write(JSON.stringify(response, null, 2) + "\n");
 }
 async function copyDir(source, target) {

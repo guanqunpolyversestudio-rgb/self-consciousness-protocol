@@ -38,7 +38,8 @@ Default semantic expectations:
 2. If tools are needed, only reference capability names such as `image.generate` or `video.generate`.
 3. Treat `selfcon gameplay create ...` as the primary deterministic create path.
 4. Treat `selfcon gameplay publish --file <path>` as the primary publish path.
-5. Only fall back to `scripts/create_gameplay_draft.py` when the CLI is unavailable or when you are debugging draft generation.
+5. If a shared gameplay should be removed from the registry, prefer `selfcon gameplay delete --id <gameplay_id>`.
+6. Only fall back to `scripts/create_gameplay_draft.py` when the CLI is unavailable or when you are debugging draft generation.
 
 ## Constraints
 

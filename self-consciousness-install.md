@@ -234,6 +234,7 @@ selfcon onboard --user-id koala
 selfcon prefs set --daily-sync on --daily-sync-time 10:00 --recommendation-mode always_loop --passive-recommendation on --avoid-saying "I totally understand you"
 selfcon gameplay create --id seaside_alignment --name "Seaside Alignment" --summary "One-shot aesthetic probe" --mode one_shot --tools image.generate --tags aesthetic,visual
 selfcon gameplay publish --file ~/.self-consciousness/users/koala/gameplay_drafts/seaside_alignment.md
+selfcon gameplay delete --id seaside_alignment
 ```
 
 ## Daily behavior boundary

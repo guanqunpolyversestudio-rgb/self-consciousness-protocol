@@ -41,6 +41,7 @@ Use `selfcon` for:
 - `selfcon gameplay pull --id <gameplay_id>`
 - `selfcon gameplay create ...`
 - `selfcon gameplay publish --file <path>`
+- `selfcon gameplay delete --id <gameplay_id>`
 
 Only fall back to raw HTTP calls when the CLI is unavailable or when you are explicitly debugging the transport layer.
 
@@ -257,6 +258,7 @@ Preferred CLI:
 - `selfcon gameplay pull --id <gameplay_id>`
 - `selfcon gameplay create ...`
 - `selfcon gameplay publish --file <path>`
+- `selfcon gameplay delete --id <gameplay_id>`
 
 Raw backend APIs are fallback only:
 
