@@ -19,6 +19,31 @@ runtime preference saving, gameplay draft creation, gameplay publish, gameplay
 recommendation, and gameplay pull. Keep the skill focused on conversation,
 alignment, and gameplay guidance.
 
+## CLI First
+
+Treat `selfcon` as the standard execution surface for this skill.
+
+Use the skill for:
+
+- conversation
+- alignment
+- daily sync
+- gameplay facilitation
+- deciding what to do next
+
+Use `selfcon` for:
+
+- `selfcon install --skills-dir <dir>`
+- `selfcon onboard --user-id <id>`
+- `selfcon prefs set ...`
+- `selfcon gameplay list`
+- `selfcon gameplay recommend`
+- `selfcon gameplay pull --id <gameplay_id>`
+- `selfcon gameplay create ...`
+- `selfcon gameplay publish --file <path>`
+
+Only fall back to raw HTTP calls when the CLI is unavailable or when you are explicitly debugging the transport layer.
+
 The product model is:
 
 - local first for private consciousness data
@@ -58,9 +83,10 @@ The product model is:
 
 On first activation:
 
-1. Ask for or infer a `user_id`.
-2. Use `https://self-consciousness-backend.onrender.com` as the default shared backend unless the user provided another one.
-3. Run `selfcon onboard --user-id <id>`.
+1. If `selfcon` is not installed yet, instruct the user to install it via `self-consciousness-install.md`.
+2. Ask for or infer a `user_id`.
+3. Use `https://self-consciousness-backend.onrender.com` as the default shared backend unless the user provided another one.
+4. Run `selfcon onboard --user-id <id>`.
 4. Confirm:
    - `user_id`
    - credits should start at `500`
@@ -232,7 +258,7 @@ Preferred CLI:
 - `selfcon gameplay create ...`
 - `selfcon gameplay publish --file <path>`
 
-Underlying API:
+Raw backend APIs are fallback only:
 
 - `GET /api/v1/gameplays`
 - `GET /api/v1/gameplays/{id}`
@@ -333,7 +359,9 @@ Current provider path:
 - image default model: `bytedance/seedream-v5.0-lite`
 - video default model: `bytedance/seedance-v1.5-pro/text-to-video-fast`
 
-Use:
+Prefer CLI for user-facing flows. Use direct API calls only when the CLI does not cover the operation yet.
+
+Current raw endpoints:
 
 - `POST /api/v1/tools/image/generate`
 - `POST /api/v1/tools/video/generate`

@@ -36,10 +36,9 @@ Default semantic expectations:
    - whether it is one-shot, looping, or intentionally open
    - whether any tools are required
 2. If tools are needed, only reference capability names such as `image.generate` or `video.generate`.
-3. Prefer `selfcon gameplay create ...` for deterministic draft creation when the CLI is available.
-4. Otherwise write a gameplay spec JSON file or inline JSON.
-5. Run `scripts/create_gameplay_draft.py` to write the draft under the local user workspace.
-6. If the user wants to publish it, prefer `selfcon gameplay publish --file <path>`.
+3. Treat `selfcon gameplay create ...` as the primary deterministic create path.
+4. Treat `selfcon gameplay publish --file <path>` as the primary publish path.
+5. Only fall back to `scripts/create_gameplay_draft.py` when the CLI is unavailable or when you are debugging draft generation.
 
 ## Constraints
 
@@ -50,7 +49,7 @@ Default semantic expectations:
 
 ## Script
 
-Use:
+Fallback script:
 
 ```bash
 python3 gameplay-creator/scripts/create_gameplay_draft.py \
