@@ -26,5 +26,6 @@ Notes:
 - `loop` means the gameplay is designed to continue across rounds until the user pauses or stops it.
 - `mode` is still a hint; the real protocol lives in the markdown body.
 - `metadata` is optional and can store any extra structure without expanding the fixed schema.
+- if the gameplay needs an explicit consciousness lens, put it under `metadata.consciousness_architecture`
 - `markdown` is the gameplay body that will be published as the gameplay content.
 - If `markdown` is omitted, the script synthesizes a small body from the metadata.

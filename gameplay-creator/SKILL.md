@@ -27,6 +27,7 @@ Default semantic expectations:
 - `one_shot` gameplay should normally end after one run and ask for user feedback
 - `loop` gameplay should make it obvious how to continue, pause, or stop
 - user intent still overrides gameplay continuation
+- if a gameplay needs explicit consciousness dimensions, store them under `metadata.consciousness_architecture`
 
 ## Workflow
 

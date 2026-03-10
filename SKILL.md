@@ -59,16 +59,15 @@ On first activation:
    - credits should start at `500`
    - local workspace path under `~/.self-consciousness/users/<user_id>/`
 5. Save the backend base URL in `~/.self-consciousness/profile.json`.
-6. Ask the user to choose one onboarding mode:
-   - `structured_alignment_workspace`
-   - `playful_alignment_experience`
+6. Do not ask the user to choose an abstract onboarding mode.
+   Internally, treat the default onboarding mode as `user_intent_first`.
 7. Ask for runtime preferences:
    - whether daily sync should run automatically
    - what local time daily sync should run
    - gameplay recommendation mode: `off`, `daily`, or `always_loop`
    - whether passive gameplay recommendation is allowed
    - interaction style preferences such as what the agent should avoid saying
-8. Save the choice through `POST /api/v1/onboarding/preference`.
+8. Save the runtime preferences through `POST /api/v1/onboarding/preference`.
 
 ## Local Data Model
 
@@ -85,8 +84,10 @@ Use these local tables conceptually:
   - the main raw record log
   - use `subject_type` such as `human`, `ai`, `relationship`
   - use `record_type` such as `sedimentation`, `reflection`, `feedback`, `question`, `answer`, `intuition_guess`
+  - if the active gameplay declares a `consciousness_architecture`, prefer its dimensions when writing records
 - `snapshots`
   - structured state snapshots, not raw logs
+  - if the active gameplay does not declare a `consciousness_architecture`, keep snapshots lightweight and free-form
 
 ## Autonomous Recording
 
@@ -108,7 +109,7 @@ Prefer:
 
 Do not stop the conversation just to narrate the write unless the user asked to see the record.
 
-## Two Top-Level Experiences
+## Runtime Entry
 
 Before choosing any gameplay structure, first determine which of these is true:
 
@@ -119,32 +120,9 @@ Before choosing any gameplay structure, first determine which of these is true:
 
 The default is not “stay in a gameplay forever.” The default is “follow the user's current goal.”
 
-### Structured Alignment Workspace
-
-This is the default serious mode.
-
-The user expresses only:
-
-- purpose
-- direction
-- constraints
-- evaluation
-- interaction
-
-The agent must respond on those same five dimensions, align dimension by dimension,
-then produce the final answer in the form the user asked for.
-
-Use this mode when the user wants clarity, planning, correction, or precise alignment.
-
-### Playful Alignment Experience
-
-This is the exploration mode.
-
-The agent proposes a more playful or experimental gameplay and guides the user through it.
-The goal is still alignment, but the surface experience can be challenge-like, narrative,
-visual, or otherwise more playful.
-
-Use this mode when the user wants novelty, energy, challenge, or a less procedural experience.
+If the user wants clarity or planning, you may choose a structured gameplay such as five-dimension alignment.
+If the user wants novelty or immersion, you may choose a more playful gameplay.
+Do not make the user pick between abstract labels before they know what those labels mean.
 
 ## User Intent First
 
@@ -177,6 +155,7 @@ Behavior:
 - the agent mirrors the same structure and highlights changes
 - each round can continue, pause, or stop
 - the user decides whether to keep looping
+- if the gameplay declares a `consciousness_architecture`, record the round on those dimensions
 
 ### `one_shot`
 
@@ -194,6 +173,7 @@ Behavior:
 - run once
 - collect user feedback
 - stop unless the user explicitly asks for another round
+- if the gameplay declares a `consciousness_architecture`, use it only for this one run
 
 ## Daily Alignment
 
@@ -245,7 +225,7 @@ Only send coarse context such as:
   - `daily_sync`
   - `gameplay_completion`
   - `user_requests_play`
-- `onboarding_mode`
+- optional internal `onboarding_mode`
 - `current_gameplay_id`
 - `active_gameplay_mode`
 - `last_completed_gameplay_id`
