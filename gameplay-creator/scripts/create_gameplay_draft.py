@@ -30,7 +30,7 @@ def _load_spec(args) -> dict:
 
 def _synthesize_markdown(spec: dict) -> str:
     lines = [
-        f"# {spec.get('name_zh') or spec['name']}",
+        f"# {spec['name']}",
         "",
         spec.get("summary", "").strip(),
     ]
@@ -74,7 +74,6 @@ def _normalize_spec(spec: dict) -> dict:
     normalized = {
         "id": spec["id"],
         "name": spec["name"],
-        "name_zh": spec.get("name_zh", ""),
         "summary": spec["summary"],
         "mode": mode,
         "tools": spec.get("tools", spec.get("required_tools", [])),

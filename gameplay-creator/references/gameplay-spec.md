@@ -6,7 +6,6 @@ The draft script expects a JSON object with this shape:
 {
   "id": "my-gameplay",
   "name": "My Gameplay",
-  "name_zh": "我的玩法",
   "summary": "One-line description.",
   "mode": "one_shot",
   "tools": ["image.generate"],

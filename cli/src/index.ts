@@ -465,7 +465,6 @@ async function cmdGameplayCreate(args: ArgMap) {
   const content = serializeGameplayMarkdown({
     id: gameplayId,
     name,
-    name_zh: "",
     summary,
     mode,
     tools,
@@ -524,7 +523,6 @@ async function writeEmbeddedSkillFile(relativePath: keyof typeof embeddedSkillAs
 function serializeGameplayMarkdown(data: {
   id: string;
   name: string;
-  name_zh: string;
   summary: string;
   mode: string;
   tools: string[];
@@ -536,7 +534,6 @@ function serializeGameplayMarkdown(data: {
   const metadata: Record<string, JsonValue> = {
     id: data.id,
     name: data.name,
-    name_zh: data.name_zh,
     summary: data.summary,
     mode: data.mode,
     tools: data.tools,

@@ -441,7 +441,6 @@ async function cmdGameplayCreate(args) {
     const content = serializeGameplayMarkdown({
         id: gameplayId,
         name,
-        name_zh: "",
         summary,
         mode,
         tools,
@@ -493,7 +492,6 @@ function serializeGameplayMarkdown(data) {
     const metadata = {
         id: data.id,
         name: data.name,
-        name_zh: data.name_zh,
         summary: data.summary,
         mode: data.mode,
         tools: data.tools,
