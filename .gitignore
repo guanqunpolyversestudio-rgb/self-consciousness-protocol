@@ -1,21 +1,2 @@
-# Python
-__pycache__/
-*.pyc
-.venv/
-*.egg-info/
-.pytest_cache/
-
-# SQLite
-*.db
-*.db-shm
-*.db-wal
-
-# macOS
-.DS_Store
-
-# IDE
-.vscode/
-.idea/
-
-# Local-only helper repo copy
-skill-creator/
+artifacts/
+cli/node_modules/

@@ -1,0 +1,17 @@
+{
+  "name": "@guanqun/selfcon",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "bin": {
+    "selfcon": "./dist/index.js"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "package:local": "node ./scripts/package-local.mjs"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.0",
+    "typescript": "^5.8.2"
+  }
+}

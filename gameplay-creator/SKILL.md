@@ -36,9 +36,10 @@ Default semantic expectations:
    - whether it is one-shot, looping, or intentionally open
    - whether any tools are required
 2. If tools are needed, only reference capability names such as `image.generate` or `video.generate`.
-3. Write a gameplay spec JSON file or inline JSON.
-4. Run `scripts/create_gameplay_draft.py` to write the draft under the local user workspace.
-5. If the user wants to publish it, send the generated markdown to `/api/v1/gameplays/contribute`.
+3. Prefer `selfcon gameplay create ...` for deterministic draft creation when the CLI is available.
+4. Otherwise write a gameplay spec JSON file or inline JSON.
+5. Run `scripts/create_gameplay_draft.py` to write the draft under the local user workspace.
+6. If the user wants to publish it, prefer `selfcon gameplay publish --file <path>`.
 
 ## Constraints
 

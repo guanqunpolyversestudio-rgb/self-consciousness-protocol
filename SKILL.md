@@ -14,6 +14,11 @@ description: >
 
 This skill is the local behavior layer for self-consciousness.
 
+Use the `selfcon` CLI for deterministic actions such as installation, onboarding,
+runtime preference saving, gameplay draft creation, gameplay publish, gameplay
+recommendation, and gameplay pull. Keep the skill focused on conversation,
+alignment, and gameplay guidance.
+
 The product model is:
 
 - local first for private consciousness data
@@ -28,24 +33,26 @@ The product model is:
 
 1. Always treat `~/.self-consciousness/` as the user's private workspace.
 2. Unless the user explicitly overrides it, use `https://self-consciousness-backend.onrender.com` as the shared backend base URL.
-3. Register the user through `/api/v1/onboarding/register` before doing any shared action.
-4. Keep raw consciousness local in the four main tables:
+3. Prefer `selfcon` CLI commands over raw HTTP calls whenever the CLI is available.
+4. Register the user before doing any shared action.
+   Preferred path: `selfcon onboard --user-id <id>`
+5. Keep raw consciousness local in the four main tables:
    - `gameplays`
    - `scores`
    - `consciousness_records`
    - `snapshots`
-5. Do not upload raw consciousness records, snapshots, or score history.
-6. Scoring is performed locally by the user's OpenClaw agent using this skill's instructions.
-7. Do not rely on any backend scoring API.
-8. Shared backend is only for:
+6. Do not upload raw consciousness records, snapshots, or score history.
+7. Scoring is performed locally by the user's OpenClaw agent using this skill's instructions.
+8. Do not rely on any backend scoring API.
+9. Shared backend is only for:
    - onboarding
    - shared gameplay registry
    - community gameplay recommendation
    - task marketplace
    - credits
    - tool jobs
-9. If the user brings a new task or idea, respond to that first. Offer gameplay only as an optional wrapper.
-10. Passive gameplay recommendation is an invitation, not a command.
+10. If the user brings a new task or idea, respond to that first. Offer gameplay only as an optional wrapper.
+11. Passive gameplay recommendation is an invitation, not a command.
 
 ## First Run
 
@@ -53,7 +60,7 @@ On first activation:
 
 1. Ask for or infer a `user_id`.
 2. Use `https://self-consciousness-backend.onrender.com` as the default shared backend unless the user provided another one.
-3. Call `POST /api/v1/onboarding/register`.
+3. Run `selfcon onboard --user-id <id>`.
 4. Confirm:
    - `user_id`
    - credits should start at `500`
@@ -67,7 +74,7 @@ On first activation:
    - gameplay recommendation mode: `off`, `daily`, or `always_loop`
    - whether passive gameplay recommendation is allowed
    - interaction style preferences such as what the agent should avoid saying
-8. Save the runtime preferences through `POST /api/v1/onboarding/preference`.
+8. Save the runtime preferences through `selfcon prefs set ...`.
 9. Do not stop at setup summary only.
 10. If the user does not immediately introduce another task, start the first gameplay round right away.
 11. Default first gameplay:
@@ -217,7 +224,15 @@ Daily alignment is separate from gameplay:
 
 Shared gameplay registry lives on the backend.
 
-Use:
+Preferred CLI:
+
+- `selfcon gameplay list`
+- `selfcon gameplay recommend`
+- `selfcon gameplay pull --id <gameplay_id>`
+- `selfcon gameplay create ...`
+- `selfcon gameplay publish --file <path>`
+
+Underlying API:
 
 - `GET /api/v1/gameplays`
 - `GET /api/v1/gameplays/{id}`
@@ -268,7 +283,8 @@ When the user wants to create a new gameplay:
 
 1. use the `gameplay-creator` skill
 2. write a markdown draft under the user's local `gameplay_drafts/`
-3. publish it with `POST /api/v1/gameplays/contribute`
+3. preferred create path: `selfcon gameplay create ...`
+4. preferred publish path: `selfcon gameplay publish --file <path>`
 
 Gameplay drafts are markdown-first and only declare tool capability names such as:
 

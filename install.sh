@@ -3,20 +3,20 @@ set -euo pipefail
 
 OWNER_REPO="guanqunpolyversestudio-rgb/self-consciousness-protocol"
 REF="main"
-SKILLS_DIR="${OPENCLAW_SKILLS_DIR:-}"
 DEFAULT_BACKEND_URL="https://self-consciousness-backend.onrender.com"
+CLI_NAME="selfcon"
+CLI_ALIAS="self-consciousness"
+SKILLS_DIR="${OPENCLAW_SKILLS_DIR:-}"
 
 usage() {
   cat <<'EOF'
 Usage:
-  bash install.sh --skills-dir /path/to/openclaw/skills [--ref main]
+  curl -fsSL <install-url> | bash -s -- [--skills-dir /path/to/openclaw/skills] [--ref main]
 
 Options:
-  --skills-dir   Target OpenClaw skills directory
+  --skills-dir   Optional OpenClaw skills directory. If provided, the installer
+                 also runs `selfcon install --skills-dir ...`
   --ref          Git ref to download from (default: main)
-
-Environment:
-  OPENCLAW_SKILLS_DIR can be used instead of --skills-dir
 EOF
 }
 
@@ -42,74 +42,107 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
-if [[ -z "${SKILLS_DIR}" ]]; then
-  echo "Missing OpenClaw skills directory." >&2
-  usage >&2
+if ! command -v node >/dev/null 2>&1; then
+  echo "Node.js is required to run ${CLI_NAME}. Please install Node.js 20+ and retry." >&2
   exit 1
 fi
 
+OS="$(uname -s)"
+ARCH="$(uname -m)"
+case "${OS}" in
+  Darwin|Linux) ;;
+  *)
+    echo "Unsupported OS: ${OS}. Only Darwin and Linux are supported." >&2
+    exit 1
+    ;;
+esac
+case "${ARCH}" in
+  arm64|aarch64) ARCH="arm64" ;;
+  x86_64) ARCH="x64" ;;
+  *)
+    echo "Unsupported architecture: ${ARCH}. Only x64 and arm64 are supported." >&2
+    exit 1
+    ;;
+esac
+
 RAW_BASE="https://raw.githubusercontent.com/${OWNER_REPO}/${REF}"
-TMP_DIR="$(mktemp -d)"
+TMP_ROOT="$(mktemp -d)"
 cleanup() {
-  rm -rf "${TMP_DIR}"
+  rm -rf "${TMP_ROOT}"
 }
 trap cleanup EXIT
 
-mkdir -p "${TMP_DIR}/gameplay-creator/references" "${TMP_DIR}/gameplay-creator/scripts"
-
-curl -fsSL "${RAW_BASE}/SKILL.md" -o "${TMP_DIR}/SKILL.md"
-curl -fsSL "${RAW_BASE}/gameplay-creator/SKILL.md" -o "${TMP_DIR}/gameplay-creator/SKILL.md"
-curl -fsSL "${RAW_BASE}/gameplay-creator/references/gameplay-spec.md" -o "${TMP_DIR}/gameplay-creator/references/gameplay-spec.md"
-curl -fsSL "${RAW_BASE}/gameplay-creator/scripts/create_gameplay_draft.py" -o "${TMP_DIR}/gameplay-creator/scripts/create_gameplay_draft.py"
-
-mkdir -p "${SKILLS_DIR}/self-consciousness" "${SKILLS_DIR}/gameplay-creator"
-rsync -a "${TMP_DIR}/SKILL.md" "${SKILLS_DIR}/self-consciousness/SKILL.md"
-rsync -a --delete "${TMP_DIR}/gameplay-creator/" "${SKILLS_DIR}/gameplay-creator/"
-
-mkdir -p "${HOME}/.self-consciousness"
-
-python3 - <<PY
-import json
+curl -fsSL "${RAW_BASE}/cli/package.json" -o "${TMP_ROOT}/package.json"
+VERSION="$(python3 - <<'PY' "${TMP_ROOT}/package.json"
+import json, sys
 from pathlib import Path
-
-profile_path = Path.home() / ".self-consciousness" / "profile.json"
-default_backend = "${DEFAULT_BACKEND_URL}"
-
-if profile_path.exists():
-    try:
-        profile = json.loads(profile_path.read_text(encoding="utf-8"))
-    except Exception:
-        profile = {}
-else:
-    profile = {}
-
-profile.setdefault("current_user_id", "")
-profile.setdefault("users", {})
-profile.setdefault("updated_at", "")
-legacy_local = {
-    "",
-    "http://127.0.0.1:8000",
-    "http://localhost:8000",
-    "https://127.0.0.1:8000",
-    "https://localhost:8000",
-}
-if profile.get("backend_base_url", "") in legacy_local:
-    profile["backend_base_url"] = default_backend
-
-profile_path.write_text(json.dumps(profile, ensure_ascii=False, indent=2) + "\\n", encoding="utf-8")
+data = json.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
+print(data["version"])
 PY
+)"
+
+INSTALL_BASE="${HOME}/.local/share/${CLI_NAME}/versions"
+TMP_VERSION_DIR="${INSTALL_BASE}/.tmp-${VERSION}-$(date +%s)"
+FINAL_VERSION_DIR="${INSTALL_BASE}/${VERSION}"
+BIN_DIR="${HOME}/.local/bin"
+
+mkdir -p "${TMP_VERSION_DIR}/dist" \
+         "${TMP_VERSION_DIR}/share/skills/self-consciousness" \
+         "${TMP_VERSION_DIR}/share/skills/gameplay-creator/references" \
+         "${TMP_VERSION_DIR}/share/skills/gameplay-creator/scripts" \
+         "${BIN_DIR}"
+
+curl -fsSL "${RAW_BASE}/cli/dist/index.js" -o "${TMP_VERSION_DIR}/dist/index.js"
+curl -fsSL "${RAW_BASE}/SKILL.md" -o "${TMP_VERSION_DIR}/share/skills/self-consciousness/SKILL.md"
+curl -fsSL "${RAW_BASE}/gameplay-creator/SKILL.md" -o "${TMP_VERSION_DIR}/share/skills/gameplay-creator/SKILL.md"
+curl -fsSL "${RAW_BASE}/gameplay-creator/references/gameplay-spec.md" -o "${TMP_VERSION_DIR}/share/skills/gameplay-creator/references/gameplay-spec.md"
+curl -fsSL "${RAW_BASE}/gameplay-creator/scripts/create_gameplay_draft.py" -o "${TMP_VERSION_DIR}/share/skills/gameplay-creator/scripts/create_gameplay_draft.py"
+cp "${TMP_ROOT}/package.json" "${TMP_VERSION_DIR}/package.json"
+
+cat > "${TMP_VERSION_DIR}/${CLI_NAME}" <<EOF
+#!/usr/bin/env bash
+set -euo pipefail
+exec node "${FINAL_VERSION_DIR}/dist/index.js" "\$@"
+EOF
+chmod +x "${TMP_VERSION_DIR}/${CLI_NAME}"
+
+rm -rf "${FINAL_VERSION_DIR}"
+mkdir -p "${INSTALL_BASE}"
+mv "${TMP_VERSION_DIR}" "${FINAL_VERSION_DIR}"
+
+ln -sfn "${FINAL_VERSION_DIR}/${CLI_NAME}" "${BIN_DIR}/${CLI_NAME}"
+ln -sfn "${FINAL_VERSION_DIR}/${CLI_NAME}" "${BIN_DIR}/${CLI_ALIAS}"
+
+if [[ -n "${SKILLS_DIR}" ]]; then
+  "${BIN_DIR}/${CLI_NAME}" install --skills-dir "${SKILLS_DIR}" --backend-url "${DEFAULT_BACKEND_URL}"
+fi
 
 cat <<EOF
-Installed:
-- ${SKILLS_DIR}/self-consciousness/SKILL.md
-- ${SKILLS_DIR}/gameplay-creator/
+Installed ${CLI_NAME} ${VERSION} for ${OS}/${ARCH}
 
-Initialized:
-- ${HOME}/.self-consciousness
-- ${HOME}/.self-consciousness/profile.json
+CLI:
+- ${BIN_DIR}/${CLI_NAME}
+- ${BIN_DIR}/${CLI_ALIAS}
+
+Version dir:
+- ${FINAL_VERSION_DIR}
+
+Default shared backend:
+- ${DEFAULT_BACKEND_URL}
 
 Next:
-1. Restart OpenClaw if it caches skills.
-2. Default shared backend is ${DEFAULT_BACKEND_URL}
-3. Ask OpenClaw to run self-consciousness onboarding.
+1. Ensure ${BIN_DIR} is in your PATH.
+2. If you passed --skills-dir, the skills are already installed.
+3. Run:
+   ${CLI_NAME} onboard --user-id <your_user_id>
 EOF
+
+case ":$PATH:" in
+  *":${BIN_DIR}:"*) ;;
+  *)
+    echo
+    echo "PATH note: ${BIN_DIR} is not currently on PATH."
+    echo "Add this to your shell profile if needed:"
+    echo "  export PATH=\"${BIN_DIR}:\$PATH\""
+    ;;
+esac

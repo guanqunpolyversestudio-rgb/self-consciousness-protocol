@@ -4,13 +4,24 @@ This file is the bootstrap guide for installing the `self-consciousness` skill i
 
 ## What gets installed
 
-Only the local skill layer is installed into OpenClaw:
+The installer now installs:
+
+- the `selfcon` CLI under `~/.local/bin/`
+- versioned CLI files under `~/.local/share/selfcon/versions/`
+- the local skill layer into OpenClaw, when a skills directory is provided
+
+The OpenClaw skill layer includes:
 
 - `self-consciousness/SKILL.md`
 - `gameplay-creator/`
 - local private workspace under `~/.self-consciousness/`
 
 Private consciousness data stays local in `~/.self-consciousness/`.
+
+Current installer note:
+
+- the CLI is TypeScript-built and runs with local Node.js
+- it is versioned like a Cursor-style installer, but it is not yet a native single-file binary
 
 Default shared backend for testing:
 
@@ -20,47 +31,52 @@ Default shared backend for testing:
 
 When OpenClaw reads this file, it should:
 
-1. install these skills:
+1. run the installer script so that `selfcon` is installed locally
+2. ensure these commands exist:
+   - `selfcon`
+   - `self-consciousness`
+3. if an OpenClaw skills directory is known, make sure the installer also installs:
    - `self-consciousness`
    - `gameplay-creator`
-2. use `https://self-consciousness-backend.onrender.com` as the default shared backend
-3. create `~/.self-consciousness/` if it does not exist
-4. ensure `~/.self-consciousness/profile.json` exists
-5. ensure `backend_base_url` in `~/.self-consciousness/profile.json` is `https://self-consciousness-backend.onrender.com`
-6. continue immediately into first-run onboarding instead of stopping after file installation
-7. ask for or infer a `user_id`
-8. call `POST /api/v1/onboarding/register` against `https://self-consciousness-backend.onrender.com`
-9. confirm that the user received `500 credits`
-10. create the local workspace under `~/.self-consciousness/users/<user_id>/`
-11. save the `current_user_id` in `~/.self-consciousness/profile.json`
-12. do not ask the user to choose between abstract onboarding labels such as `structured_alignment_workspace` and `playful_alignment_experience`
-13. internally use the default onboarding mode `user_intent_first`
-14. ask the user for runtime preferences:
+4. use `https://self-consciousness-backend.onrender.com` as the default shared backend
+5. create `~/.self-consciousness/` if it does not exist
+6. ensure `~/.self-consciousness/profile.json` exists
+7. ensure `backend_base_url` in `~/.self-consciousness/profile.json` is `https://self-consciousness-backend.onrender.com`
+8. continue immediately into first-run onboarding instead of stopping after file installation
+9. ask for or infer a `user_id`
+10. run `selfcon onboard --user-id <user_id>`
+11. confirm that the user received `500 credits`
+12. confirm the local workspace under `~/.self-consciousness/users/<user_id>/`
+13. save the `current_user_id` in `~/.self-consciousness/profile.json`
+14. do not ask the user to choose between abstract onboarding labels such as `structured_alignment_workspace` and `playful_alignment_experience`
+15. internally use the default onboarding mode `user_intent_first`
+16. ask the user for runtime preferences:
    - whether daily sync should run automatically
    - what local time daily sync should run
    - gameplay recommendation mode: `off`, `daily`, or `always_loop`
    - whether passive gameplay recommendation is allowed
    - how the agent should or should not speak
-15. save runtime preferences through `POST /api/v1/onboarding/preference`
-16. call `GET /api/v1/tools/capabilities` against `https://self-consciousness-backend.onrender.com`
-17. remember the currently available tool capabilities, especially:
+17. save runtime preferences through `selfcon prefs set ...`
+18. call `GET /api/v1/tools/capabilities` against `https://self-consciousness-backend.onrender.com`
+19. remember the currently available tool capabilities, especially:
    - `image.generate`
    - `video.generate`
-18. if a gameplay later declares a `consciousness_architecture`, use that architecture as the lens for local consciousness recording
-19. if daily sync automation is enabled, configure one daily automation that:
+20. if a gameplay later declares a `consciousness_architecture`, use that architecture as the lens for local consciousness recording
+21. if daily sync automation is enabled, configure one daily automation that:
    - runs local `daily alignment`
    - if recommendation mode is `daily`, then requests one community gameplay recommendation
    - shows the recommendation to the user without auto-starting the gameplay
    - does not upload raw consciousness records, snapshots, or private score history
-20. after installation, do not stop at a setup summary
-21. if the user does not immediately propose a different task, lead the user into the first gameplay round right away:
+22. after installation, do not stop at a setup summary
+23. if the user does not immediately propose a different task, lead the user into the first gameplay round right away:
    - default path: start a local five-dimension alignment round
    - ask for `purpose`, `direction`, `constraints`, `evaluation`, and `interaction`
    - mirror those same five dimensions back to the user
    - produce a first aligned response
    - if the user prefers novelty instead, request one community gameplay recommendation and start that one instead
-22. after the first gameplay round has started, report:
+24. after the first gameplay round has started, report:
    - where the skills were installed
+   - where `selfcon` was installed
    - the current `user_id`
    - whether onboarding/register succeeded
    - whether `500 credits` were received
@@ -88,25 +104,24 @@ export OPENCLAW_SKILLS_DIR=<OPENCLAW_SKILLS_DIR>
 curl -fsSL https://raw.githubusercontent.com/guanqunpolyversestudio-rgb/self-consciousness-protocol/main/install.sh | bash
 ```
 
+After installation:
+
+```bash
+selfcon onboard --user-id <your_user_id>
+```
+
 ## Manual install
 
-1. Clone this repository somewhere local.
-2. Copy the main skill into your OpenClaw skills directory.
-3. Copy `gameplay-creator` into your OpenClaw skills directory.
-4. Create `~/.self-consciousness/`.
+1. Install the CLI with the installer script.
+2. Run `selfcon install --skills-dir <OPENCLAW_SKILLS_DIR>`.
+3. Run `selfcon onboard --user-id <your_user_id>`.
 
 Example:
 
 ```bash
-git clone <THIS_REPO_URL>
-cd self_consciousness
-
-mkdir -p <OPENCLAW_SKILLS_DIR>/self-consciousness
-cp SKILL.md <OPENCLAW_SKILLS_DIR>/self-consciousness/SKILL.md
-
-cp -R gameplay-creator <OPENCLAW_SKILLS_DIR>/gameplay-creator
-
-mkdir -p ~/.self-consciousness
+curl -fsSL https://raw.githubusercontent.com/guanqunpolyversestudio-rgb/self-consciousness-protocol/main/install.sh | bash
+selfcon install --skills-dir <OPENCLAW_SKILLS_DIR>
+selfcon onboard --user-id <your_user_id>
 ```
 
 ## First run inside OpenClaw
@@ -115,8 +130,9 @@ When the skill first runs:
 
 1. choose or create a `user_id`
 2. use the default shared backend `https://self-consciousness-backend.onrender.com` unless you intentionally override it
-3. create local workspace under `~/.self-consciousness/users/<user_id>/`
-4. receive `500 credits`
+3. run `selfcon onboard --user-id <user_id>`
+4. create local workspace under `~/.self-consciousness/users/<user_id>/`
+5. receive `500 credits`
 5. do not ask the user to choose an abstract onboarding mode
 6. default internally to `user_intent_first`
 
@@ -137,12 +153,12 @@ After installation, you can give OpenClaw this prompt directly:
 ```text
 Please use the self-consciousness skill.
 
-First read ~/.self-consciousness/profile.json and confirm that backend_base_url is https://self-consciousness-backend.onrender.com.
-If it is not, update it to https://self-consciousness-backend.onrender.com.
+First make sure the `selfcon` CLI is installed. If it is not, install it using:
+curl -fsSL https://raw.githubusercontent.com/guanqunpolyversestudio-rgb/self-consciousness-protocol/main/install.sh | bash -s -- --skills-dir <OPENCLAW_SKILLS_DIR>
 
 Then continue installation by completing first-run onboarding:
 1. If there is no current user_id, help me create or confirm one.
-2. Use the shared backend at https://self-consciousness-backend.onrender.com to call onboarding/register.
+2. Use `selfcon onboard --user-id <user_id>`.
 3. Confirm that I received 500 credits.
 4. Confirm the local workspace path under ~/.self-consciousness/users/<user_id>/.
 5. Do not ask me to choose between abstract onboarding labels.
@@ -152,7 +168,7 @@ Then continue installation by completing first-run onboarding:
    - gameplay recommendation mode: off, daily, or always_loop
    - passive gameplay recommendation on/off
    - what the agent should avoid saying
-8. Save my choices.
+8. Save my choices with `selfcon prefs set ...`.
 9. After setup, do not stop at a summary.
 10. If I do not introduce a different task, lead me into the first gameplay round immediately.
 11. Default first gameplay:
@@ -179,8 +195,8 @@ After onboarding, continue with a cloud smoke test:
 Short version:
 
 ```text
-Please use the self-consciousness skill, make sure ~/.self-consciousness/profile.json points to https://self-consciousness-backend.onrender.com, then:
-1. run onboarding/register
+Please use the self-consciousness skill, make sure `selfcon` is installed and ~/.self-consciousness/profile.json points to https://self-consciousness-backend.onrender.com, then:
+1. run `selfcon onboard --user-id <user_id>`
 2. list shared gameplays
 3. request one gameplay recommendation
 4. show me the result without auto-starting the gameplay
@@ -215,6 +231,16 @@ The installation experience is not complete if it ends at preference saving and 
 If a gameplay declares a `consciousness_architecture`, OpenClaw should use that architecture
 as the local lens for consciousness recording during that gameplay. If it does not, keep the
 recording free-form and lightweight.
+
+## CLI Examples
+
+```bash
+selfcon install --skills-dir <OPENCLAW_SKILLS_DIR>
+selfcon onboard --user-id koala
+selfcon prefs set --daily-sync on --daily-sync-time 10:00 --recommendation-mode always_loop --passive-recommendation on --avoid-saying "I totally understand you"
+selfcon gameplay create --id seaside_alignment --name "Seaside Alignment" --summary "One-shot aesthetic probe" --mode one_shot --tools image.generate --tags aesthetic,visual
+selfcon gameplay publish --file ~/.self-consciousness/users/koala/gameplay_drafts/seaside_alignment.md
+```
 
 ## Daily behavior boundary
 
